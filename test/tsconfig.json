@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+		"target": "es5",
+		// "module": "commonjs",
+		//"watch": true,
+		//"sourceMap": true,
+	   "out": "./test/out/test.js"
+	},
+	"include": [
+	
+		// "src/**/Node.ts",
+		// "src/**/Command.ts",
+		// "src/**/Gird.ts",
+		// "src/**/Astar.ts",
+		// "src/**/Map.ts",
+		// "src/**/Observer.ts",
+		// "src/**/Panel.ts",
+		// "src/**/Player.ts",
+		// "src/**/Property.ts",
+		// "src/**/Skill.ts",
+		// "src/**/Task.ts",
+		// "src/**/TaskService.ts",
+		// "src/**/Scene.ts",
+		// "src/**/User.ts",
+		// "src/**/Battle.ts",
+		"src/**/*.ts",
+		"../engine/out/**/*.d.ts"
+	]
+}
