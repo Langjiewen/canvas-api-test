@@ -11,10 +11,8 @@ namespace engine {
         globalAphla: number;
     }
 
-    export interface Drawable {
-
-        draw(context2D: CanvasRenderingContext2D);
-
+     export interface Drawable {
+        update();
     }
 
     export interface Event {
@@ -23,7 +21,9 @@ namespace engine {
     }
 
 
-    export abstract class DisplayObject implements Drawable {
+    export abstract class DisplayObject  {
+
+        type = "DisplayObject";
 
         x: number = 0;
 
@@ -31,7 +31,7 @@ namespace engine {
 
         alpha: number = 1;
 
-        globalAppha: number = 1;
+        globalAlpha: number = 1;
 
         scaleX: number = 1;
 
@@ -53,14 +53,15 @@ namespace engine {
 
         //捕获冒泡机制   通知整个父
 
-        constructor() {
+          constructor(type: string) {
+            this.type = type;
             this.globalMatrix = new engine.Matrix();
             this.localMatrix = new engine.Matrix();
         }
 
         abstract hitTest(x: number, y: number);
 
-        abstract render(context2D: CanvasRenderingContext2D);   //模板方法模式
+        //abstract render(context2D: CanvasRenderingContext2D);   //模板方法模式
 
         addEventListener(type: string, listener: Function, useCapture?: boolean) {
 
@@ -93,7 +94,7 @@ namespace engine {
                 for (let j = 0; j < this.touchListenerList.length; j++) {
 
                     if (this.touchListenerList[j].type == E.type && this.touchListenerList[j].capture == true) {
-
+                         console.log(this);
                         this.touchListenerList[j].func(E.e);
 
                     }
@@ -103,7 +104,7 @@ namespace engine {
                 for (let j = 0; j < this.touchListenerList.length; j++) {
 
                     if (this.touchListenerList[j].type == E.type && this.touchListenerList[j].capture == false) {
-
+                         console.log(this);
                         this.touchListenerList[j].func(E.e);
 
                     }
@@ -113,26 +114,26 @@ namespace engine {
 
         }
 
-        draw(context2D: CanvasRenderingContext2D) {  //应有final
+        update() {  
 
-            context2D.save();
-
+            this.localMatrix.updateFromDisplayObject(this.x, this.y, this.scaleX, this.scaleY, this.rotation);
             if (this.parent) {
-
-                this.globalAppha = this.alpha * this.parent.globalAppha;
+                this.globalMatrix = matrixAppendMatrix(this.localMatrix, this.parent.globalMatrix);
             }
             else {
-                this.globalAppha = this.alpha;
+                this.globalMatrix = this.localMatrix;
+            }
+            if (this.parent) {
+                this.globalAlpha = this.parent.globalAlpha * this.alpha;
+            }
+            else {
+                this.globalAlpha = this.alpha;
             }
 
-            context2D.globalAlpha = this.globalAppha;
-
-            this.setMatrix();
-
-            context2D.setTransform(this.globalMatrix.a, this.globalMatrix.b, this.globalMatrix.c, this.globalMatrix.d, this.globalMatrix.tx, this.globalMatrix.ty);
-
-            this.render(context2D);
         }
+
+  
+
 
         setMatrix() {
 
@@ -149,7 +150,7 @@ namespace engine {
         }
     }
 
-    export class Bitmap extends DisplayObject {
+    export class Bitmap extends DisplayObject implements Drawable{
 
         image: HTMLImageElement;
 
@@ -159,13 +160,13 @@ namespace engine {
 
         //texture: string;
 
-        private _src = "";
+         _src = "";
 
-        private isLoaded = false;
+        isLoaded = false;
 
         constructor() {
 
-            super();
+            super("Bitmap");
             this.image = document.createElement('img');
 
             // this.image.src = ad;
@@ -180,29 +181,6 @@ namespace engine {
             this.height = this.image.height;
         }
 
-        render(context2D: CanvasRenderingContext2D) {
-
-            context2D.globalAlpha = this.alpha;
-
-            if (this.isLoaded) {
-
-                context2D.drawImage(this.image, 0, 0, this.width, this.height);
-            }
-
-            else {
-
-                this.image.src = this._src;
-
-                this.image.onload = () => {
-
-                    context2D.drawImage(this.image, 0, 0, this.width, this.height);
-
-                    this.isLoaded = true;
-
-                }
-            }
-
-        }
 
         hitTest(x: number, y: number) {
 
@@ -212,7 +190,7 @@ namespace engine {
 
             rect.height = this.image.height;
             let result = rect.isPointInReactangle(new engine.Point(x, y));
-            console.log("bitmap", rect.height, rect.width, x, y);
+            //console.log("bitmap", rect.height, rect.width, x, y);
 
             if (result) {
                 return this;
@@ -226,13 +204,15 @@ namespace engine {
 
 
 
-    export class TextField extends DisplayObject {
+    export class TextField extends DisplayObject implements Drawable{
 
         text: string = "";
 
         font: string = "Arial";
 
         size: string = "36";
+
+        fillColor = "#FFFFFF";
 
         width;
 
@@ -241,17 +221,7 @@ namespace engine {
         _measureTextWidth = 0;
 
         constructor() {
-            super();
-        }
-
-        render(context2D: CanvasRenderingContext2D) {
-
-            context2D.font = this.size + "px " + this.font;
-
-            context2D.fillText(this.text, 0, parseInt(this.size));
-
-            this._measureTextWidth = context2D.measureText(this.text).width;  //180
-
+            super("TextField");
         }
 
         hitTest(x: number, y: number) {
@@ -265,7 +235,7 @@ namespace engine {
             let point = new engine.Point(x, y);
 
             //return rect.isPointInReactangle(point) ? this : null;
-            console.log("tf", rect.height, rect.width, x, y);
+            //console.log("tf", rect.height, rect.width, x, y);
             if (rect.isPointInReactangle(point)) {
                 return this;
             }
@@ -282,12 +252,13 @@ namespace engine {
         children: DisplayObject[] = [];
 
         constructor() {
-            super();
+            super("DisplayObjectContainer");
         }
 
-        render(context2D) {
-            for (let Drawable of this.children) {
-                Drawable.draw(context2D);
+       update() {
+            super.update();
+            for (let drawable of this.children) {
+                drawable.update();
             }
         }
 
@@ -321,7 +292,7 @@ namespace engine {
                 let child = this.children[i];
                 //child.localMatrix * point;
                 let point = new engine.Point(x, y);
-                console.log(x, y);
+                //console.log(x, y);
                 let invertChildLocalMatrix = engine.invertMatrix(child.localMatrix);
                 let pointBaseOnChild = engine.pointAppendMatrix(point, invertChildLocalMatrix);
                 let HitTestResult = child.hitTest(pointBaseOnChild.x, pointBaseOnChild.y);
@@ -344,10 +315,12 @@ namespace engine {
 
     export class Shape extends DisplayObjectContainer {
 
-        graphics: Graphics = new Graphics();
-
+        graphics: Graphics;
         constructor() {
             super();
+            this.type = "Shape";
+            this.graphics = new Graphics();
+            this.addChild(this.graphics);
         }
 
     }
@@ -362,14 +335,10 @@ namespace engine {
         height;
         transX;
         transY;
-
-        render(context2D: CanvasRenderingContext2D) {
-
-            context2D.globalAlpha = this.alpha;
-            context2D.fillStyle = this.fillColor;
-            context2D.fillRect(this.transX, this.transY, this.width, this.height);
-            context2D.fill();
-        }
+       
+       constructor(){
+           super("Graphics");
+       }
 
         hitTest(x: number, y: number) {
 
@@ -378,6 +347,7 @@ namespace engine {
             rect.width = this.width;
 
             rect.height = this.height;
+            
             let result = rect.isPointInReactangle(new engine.Point(x, y));
             //console.log("bitmap", rect.height, rect.width, x, y);
 
@@ -390,16 +360,13 @@ namespace engine {
 
         }
 
-        beginFill(color, alpha) {
+        beginFill(color:string, alpha) {
             this.fillColor = color;
             this.alpha = alpha;
         }
 
         endFill() {
-
-            this.fillColor = "#000000";
-            this.alpha = 1;
-
+           //context2D.fill();
         }
 
 
@@ -486,6 +453,7 @@ namespace engine {
     export type MovieClipFrameData = {
         "image": string
     }
+
 
 
 }

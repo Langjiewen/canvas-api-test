@@ -1072,293 +1072,6 @@ var TileNode = (function () {
     }
     return TileNode;
 }());
-var Item = (function (_super) {
-    __extends(Item, _super);
-    function Item(name, ad, atk, x, y) {
-        var _this = _super.call(this) || this;
-        _this._body = new engine.Bitmap();
-        _this._body.src = ad;
-        _this._body.width = TileMap.TILE_SIZE;
-        _this._body.height = TileMap.TILE_SIZE;
-        _this.name = name;
-        _this.ad = ad;
-        _this.atk = atk;
-        _this.x = x;
-        _this.y = y;
-        _this.addChild(_this._body);
-        _this.touchEnabled = true;
-        _this.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-            _this.onItemClick();
-        });
-        return _this;
-    }
-    Item.prototype.onChange = function () {
-    };
-    Item.prototype.onItemClick = function () {
-        if (SceneService.getInstance().list, length != 0) {
-            SceneService.getInstance().list.cancel();
-        }
-        SceneService.getInstance().list.addCommand(new WalkCommand(Math.floor(this.x / TileMap.TILE_SIZE), Math.floor(this.y / TileMap.TILE_SIZE)));
-        SceneService.getInstance().list.addCommand(new EquipCommand(this.name, this.ad, this.atk));
-        SceneService.getInstance().list.execute();
-    };
-    return Item;
-}(engine.DisplayObjectContainer));
-var NPC = (function (_super) {
-    __extends(NPC, _super);
-    //public NPCTalk:string;
-    // public task:Task;
-    function NPC(id, ad, x, y, dia) {
-        var _this = _super.call(this) || this;
-        _this.fighted = false;
-        _this.dialoguePanel = dia;
-        _this._body = new engine.Bitmap();
-        _this._emoji = new engine.Bitmap();
-        _this._body.src = ad;
-        _this._emoji.src = "notice_png";
-        _this._id = id;
-        _this.x = x;
-        _this.y = y;
-        _this._body.width = _this._body.width / 2;
-        _this._body.height = _this._body.height / 2;
-        _this._emoji.width = 70;
-        _this._emoji.height = 70;
-        _this._emoji.y = -60;
-        _this._emoji.x = -5;
-        _this._emoji.alpha = 0;
-        _this.addChild(_this._body);
-        _this.addChild(_this._emoji);
-        _this.touchEnabled = true;
-        _this.addEventListener(engine.TouchEvent.TOUCH_BEGIN, _this.onNPCClick);
-        return _this;
-    }
-    NPC.prototype.onChange = function (task) {
-        if (task.status == TaskStatus.ACCEPTABLE && this._id == task.fromNpcId) {
-            this._emoji.src = "notice_png";
-            this._emoji.alpha = 1;
-        }
-        if (task.status == TaskStatus.DURING && this._id == task.fromNpcId) {
-            this._emoji.alpha = 0;
-        }
-        if (task.status == TaskStatus.DURING && this._id == task.toNpcId) {
-            this._emoji.src = "question_png";
-            this._emoji.alpha = 1;
-        }
-        if (task.status == TaskStatus.CAN_SUBMIT && this._id == task.fromNpcId) {
-            this._emoji.src = "question_png";
-            this._emoji.alpha = 0;
-        }
-        if (task.status == TaskStatus.CAN_SUBMIT && this._id == task.toNpcId) {
-            this._emoji.src = "question_png";
-            this._emoji.alpha = 1;
-        }
-        if (task.status == TaskStatus.SUBMITED && this._id == task.toNpcId) {
-            this._emoji.alpha = 0;
-        }
-    };
-    NPC.prototype.onNPCClick = function () {
-        TaskService.getInstance().accept();
-        if (SceneService.getInstance().list, length != 0) {
-            SceneService.getInstance().list.cancel();
-        }
-        SceneService.getInstance().list.addCommand(new WalkCommand(Math.floor(this.x / TileMap.TILE_SIZE), Math.floor(this.y / TileMap.TILE_SIZE)));
-        SceneService.getInstance().list.addCommand(new TalkCommand(this._id));
-        SceneService.getInstance().list.execute();
-    };
-    return NPC;
-}(engine.DisplayObjectContainer));
-var TaskPanel = (function (_super) {
-    __extends(TaskPanel, _super);
-    //task:Task
-    function TaskPanel(x, y) {
-        var _this = _super.call(this) || this;
-        _this.x = x;
-        _this.y = y;
-        _this.body = new engine.Shape();
-        _this.body.graphics.beginFill(0x000000, 0.4);
-        _this.body.graphics.drawRect(0, 0, 600, 100);
-        _this.body.graphics.endFill();
-        _this.textField = new engine.TextField();
-        _this.textField.text = "   任务进程    ";
-        _this.textField.x = 0;
-        _this.textField.x = 0;
-        _this.textField2 = new engine.TextField();
-        _this.textField2.text = "  任务状态    ";
-        _this.textField2.x = 0;
-        _this.textField2.y = 30;
-        _this.textField3 = new engine.TextField();
-        _this.textField2.text = "      ";
-        _this.textField3.x = 0;
-        _this.textField3.y = 55;
-        _this.addChild(_this.body);
-        _this.addChild(_this.textField);
-        _this.addChild(_this.textField2);
-        _this.addChild(_this.textField3);
-        return _this;
-    }
-    TaskPanel.prototype.onChange = function (task) {
-        console.log(task);
-        this.textField.text = task.desc;
-        var tf;
-        switch (task.status) {
-            case 0:
-                tf = "未可接受";
-                break;
-            case 1:
-                tf = "可接受";
-                break;
-            case 2:
-                tf = "进行中";
-                break;
-            case 3:
-                tf = "可完成";
-                break;
-            case 4:
-                tf = "已完成";
-                break;
-        }
-        this.textField2.text = task.name + " :" + tf;
-        if (task.type == TaskType.Kill) {
-            this.textField3.text = task.name + " :" + task.getcurrent() + "/" + task.total;
-        }
-    };
-    return TaskPanel;
-}(engine.DisplayObjectContainer));
-var DialoguePanel = (function (_super) {
-    __extends(DialoguePanel, _super);
-    function DialoguePanel(talk) {
-        var _this = _super.call(this) || this;
-        _this.body = new engine.Shape();
-        _this.body.graphics.beginFill(0x000000, 0.7);
-        _this.body.graphics.drawRect(0, 0, 600, 172);
-        _this.body.graphics.endFill();
-        _this.body.y = 450;
-        _this.textField = new engine.TextField();
-        _this.textField.text = talk;
-        _this.button = new Button("close_png");
-        _this.textField.x = 80;
-        _this.textField.y = 500;
-        _this.button.body.width = 40;
-        _this.button.body.height = 40;
-        _this.button.x = 500;
-        _this.button.y = 550;
-        _this.button.touchEnabled = true;
-        _this.body.touchEnabled = true;
-        _this.button.addEventListener(engine.TouchEvent.TOUCH_TAP, _this.onButtonClick);
-        return _this;
-    }
-    DialoguePanel.prototype.showDpanel = function () {
-        this.addChild(this.body);
-        this.addChild(this.button);
-        this.addChild(this.textField);
-    };
-    DialoguePanel.prototype.updateViewByTask = function (task) {
-        this.currentTask = task;
-        if (this.currentTask.id == "001" && this.linkNPC._id == "NPC_2") {
-            this.textField.text = "变得不规则挺好的，哈哈哈，来跳舞吧！";
-        }
-        if (this.currentTask.status == TaskStatus.CAN_SUBMIT && this.currentTask.status == 4) {
-            this.textField.text = this.currentTask.NPCTaskTalk;
-        }
-    };
-    DialoguePanel.prototype.disshowDpanel = function () {
-        this.removeChild(this.body);
-        this.removeChild(this.button);
-        this.removeChild(this.textField);
-    };
-    DialoguePanel.prototype.onButtonClick = function () {
-        this.disshowDpanel();
-        switch (this.currentTask.status) {
-            case TaskStatus.ACCEPTABLE:
-                TaskService.getInstance().accept(this.currentTask.id);
-                // if (this.currentTask.id == "000") {
-                //     TaskService.getInstance().finish(this.currentTask.id);
-                //     if (TaskService.getInstance().getNextTask() != null) {
-                //         TaskService.getInstance().getNextTask().status = TaskStatus.ACCEPTABLE;
-                //         TaskService.getInstance().notify(TaskService.getInstance().getNextTask());
-                //     }
-                //     if (TaskService.getInstance().getTaskByCustomRule() != null) {
-                //         this.updateViewByTask(TaskService.getInstance().getTaskByCustomRule());
-                //         TaskService.getInstance().notify(TaskService.getInstance().getTaskByCustomRule());
-                //     }
-                // }
-                break;
-            case TaskStatus.CAN_SUBMIT:
-                TaskService.getInstance().finish(this.currentTask.id);
-                if (TaskService.getInstance().getNextTask() != null) {
-                    TaskService.getInstance().getNextTask().status = TaskStatus.ACCEPTABLE;
-                }
-                if (TaskService.getInstance().getTaskByCustomRule() != null) {
-                    console.log(TaskService.getInstance().getTaskByCustomRule());
-                    this.updateViewByTask(TaskService.getInstance().getTaskByCustomRule());
-                    TaskService.getInstance().notify(TaskService.getInstance().getTaskByCustomRule());
-                }
-                break;
-            default:
-                break;
-        }
-        if (this.linkNPC._id == "NPC_2" && this.linkNPC.fighted == false) {
-            if (SceneService.getInstance().list, length != 0) {
-                SceneService.getInstance().list.cancel();
-            }
-            SceneService.getInstance().list.addCommand(new FightCommand("npc_2_png"));
-            SceneService.getInstance().list.execute();
-        }
-        else {
-            this.textField.text = "我投降";
-        }
-    };
-    return DialoguePanel;
-}(engine.DisplayObjectContainer));
-var Monster = (function (_super) {
-    __extends(Monster, _super);
-    function Monster(ad, linkTask) {
-        var _this = _super.call(this) || this;
-        _this.count = 0;
-        _this.ad = ad;
-        _this.body = new engine.Bitmap();
-        _this.body.src = ad;
-        _this.body.width = TileMap.TILE_SIZE;
-        _this.body.height = TileMap.TILE_SIZE;
-        _this.linkTask = linkTask;
-        _this.touchEnabled = true;
-        _this.addEventListener(engine.TouchEvent.TOUCH_BEGIN, _this.onButtonClick);
-        _this.addChild(_this.body);
-        engine.Ticker.getInstance().register(function () {
-            if (_this.count < 5) {
-                _this.body.scaleY *= 1.01;
-            }
-            else if (_this.count < 10 || _this.count >= 5) {
-                _this.body.scaleY /= 1.01;
-            }
-            _this.count += 0.5;
-            if (_this.count >= 10) {
-                _this.count = 0;
-            }
-        });
-        return _this;
-    }
-    Monster.prototype.onButtonClick = function () {
-        if (SceneService.getInstance().list, length != 0) {
-            SceneService.getInstance().list.cancel();
-        }
-        SceneService.getInstance().list.addCommand(new WalkCommand(Math.floor(this.x / TileMap.TILE_SIZE), Math.floor(this.y / TileMap.TILE_SIZE)));
-        SceneService.getInstance().list.addCommand(new FightCommand(this.ad));
-        SceneService.getInstance().list.execute();
-    };
-    Monster.prototype.onChange = function () {
-        if (this.linkTask != null) {
-            var task = TaskService.getInstance().taskList[this.linkTask];
-            if (!task) {
-                console.error('missing task:', this.linkTask);
-            }
-            if (task.status == TaskStatus.DURING) {
-                SceneService.getInstance().notify(TaskService.getInstance().taskList[this.linkTask]);
-            }
-        }
-    };
-    return Monster;
-}(engine.DisplayObjectContainer));
 // interface State {
 //     onEnter();
 //     onExit();
@@ -1595,7 +1308,7 @@ var PropertyPanel = (function (_super) {
         _this.tfweaponATK = new engine.TextField();
         _this.body = new engine.Shape();
         _this.body.touchEnabled = true;
-        _this.body.graphics.beginFill(0x000000, 0.6);
+        _this.body.graphics.beginFill("#000000", 0.6);
         _this.body.graphics.drawRect(0, 0, 640, 400);
         _this.body.graphics.endFill();
         _this.closeButton = new Button("close_png");
@@ -1678,7 +1391,7 @@ var PropertyPanel = (function (_super) {
         this.weaponflag = true;
         this.weaponbody = new engine.Shape();
         this.weaponbody.touchEnabled = true;
-        this.weaponbody.graphics.beginFill(0x000000, 0.5);
+        this.weaponbody.graphics.beginFill("#000000", 0.5);
         this.weaponbody.graphics.drawRect(0, 0, 300, 240);
         this.weaponbody.graphics.endFill();
         this.addChild(this.weaponbody);
@@ -1808,10 +1521,6 @@ var Player = (function (_super) {
             }
             _this._body.src = list[Math.floor(count)];
         });
-        //engine.Tween.get(walk).to({ x: targetX, y: targetY }, 300, engine.Ease.sineIn);
-        // var tw = engine.Tween.get(walk);
-        // tw.wait(200);
-        // tw.call(change, self);
     };
     Player.prototype.startidle = function () {
         var _this = this;
@@ -1940,881 +1649,6 @@ var PropertiesDisplayUtils = (function () {
     };
     return PropertiesDisplayUtils;
 }());
-var SceneService = (function () {
-    function SceneService() {
-        this.observerList = [];
-        this.list = new CommandList();
-        SceneService.count++;
-        if (SceneService.count > 1) {
-            throw "singleton!!!";
-        }
-    }
-    SceneService.getInstance = function () {
-        if (SceneService.instance == null) {
-            SceneService.instance = new SceneService();
-        }
-        return SceneService.instance;
-    };
-    SceneService.prototype.addObserver = function (observer) {
-        for (var i = 0; i < this.observerList.length; i++) {
-            if (observer == this.observerList[i])
-                return ErrorCode.REPEAT_OBSERVER;
-        }
-        this.observerList.push(observer);
-    };
-    SceneService.prototype.notify = function (task) {
-        for (var _i = 0, _a = this.observerList; _i < _a.length; _i++) {
-            var observer = _a[_i];
-            observer.onChange(task);
-        }
-    };
-    return SceneService;
-}());
-SceneService.count = 0;
-var GameScene = (function () {
-    function GameScene() {
-    }
-    GameScene.replaceScene = function (scene) {
-        GameScene.scene = scene;
-    };
-    GameScene.getCurrentScene = function () {
-        return GameScene.scene;
-    };
-    GameScene.prototype.moveTo = function (x, y, callback) {
-        var _this = this;
-        console.log("开始移动");
-        var playerX = Math.floor(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE);
-        var playerY = Math.floor(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE);
-        // var playerX: number = 0;
-        // var playerY: number = 0;
-        var gridX = x;
-        var gridY = y;
-        var astar = new AStar();
-        var grid = new Grid(12, 16, testmap);
-        grid.setStartNode(playerX, playerY);
-        grid.setEndNode(gridX, gridY);
-        //console.log(grid._nodes);
-        if (astar.findPath(grid)) {
-            astar._path.map(function (tile) {
-                console.log("x:" + tile.x + ",y:" + tile.y);
-            });
-            var path = astar._path;
-            var current = path.shift();
-            this.ticker = function () {
-                playerX = Math.floor(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE + 0.5);
-                playerY = Math.floor(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE + 0.5);
-                // playerX = Math.ceil(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE);
-                // playerY = Math.ceil(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE);
-                var diffX = TileMap.TILE_SPEED * (current.x - playerX);
-                var diffY = TileMap.TILE_SPEED * (current.y - playerY);
-                GameScene.getCurrentScene().player._body.x += diffX;
-                GameScene.getCurrentScene().player._body.y += diffY;
-                // if (Math.abs(GameScene.getCurrentScene().player._body.x - TileMap.TILE_SIZE * current.x) < TileMap.TILE_SPEED) {
-                // }
-                if (playerX == current.x && playerY == current.y) {
-                    engine.Ticker.getInstance().unregister(_this.ticker);
-                    // var tween = engine.Tween.get(GameScene.getCurrentScene().player._body);
-                    // tween.to({ x: current.x * TileMap.TILE_SIZE, y: current.y * TileMap.TILE_SIZE }, 100);
-                    engine.Ticker.getInstance().register(_this.ticker);
-                    // GameScene.getCurrentScene().player._body.x = current.x * TileMap.TILE_SIZE;
-                    // GameScene.getCurrentScene().player._body.y = current.y * TileMap.TILE_SIZE;
-                    if (astar._path.length == 0) {
-                        engine.Ticker.getInstance().unregister(_this.ticker);
-                        console.log("结束移动");
-                        callback();
-                    }
-                    else {
-                        current = path.shift();
-                    }
-                }
-            };
-            engine.Ticker.getInstance().register(this.ticker);
-            playerX = Math.floor(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE + 0.5);
-            playerY = Math.floor(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE + 0.5);
-        }
-    };
-    GameScene.prototype.stopMove = function (callback) {
-        var playerX = Math.floor(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE + 0.5);
-        var playerY = Math.floor(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE + 0.5);
-        engine.Ticker.getInstance().unregister(this.ticker);
-        GameScene.getCurrentScene().player._body.x = playerX * TileMap.TILE_SIZE;
-        GameScene.getCurrentScene().player._body.y = playerY * TileMap.TILE_SIZE;
-        setTimeout(function () {
-            console.log("中断移动");
-            callback();
-        }, this, 500);
-    };
-    return GameScene;
-}());
-GameScene.scene = new GameScene();
-var UIScene = (function () {
-    function UIScene() {
-    }
-    UIScene.replaceScene = function (scene) {
-        UIScene.scene = scene;
-    };
-    UIScene.getCurrentScene = function () {
-        return UIScene.scene;
-    };
-    UIScene.prototype.gameMenu = function () {
-        var stageW = 640;
-        var stageH = 1136;
-        var BlackMask = new engine.Shape();
-        BlackMask.graphics.beginFill(0x000000, 1);
-        BlackMask.graphics.drawRect(0, 0, stageW, stageH);
-        BlackMask.graphics.endFill();
-        BlackMask.graphics.width = stageW;
-        BlackMask.graphics.height = stageH;
-        GameScene.getCurrentScene().stage.addChild(BlackMask);
-        //   UIScene.getCurrentScene().hero = SetTriangle();
-        //   var battle = new Battle(UIScene.getCurrentScene().hero,1,"npc_2_png",6,6);
-        //  GameScene.getCurrentScene().main.addChild(battle);
-        var WhiteMask = new engine.Shape();
-        WhiteMask.graphics.beginFill(0xFFFFFF, 1);
-        WhiteMask.graphics.drawRect(0, 0, stageW, stageH);
-        WhiteMask.graphics.endFill();
-        WhiteMask.graphics.width = stageW;
-        WhiteMask.graphics.height = stageH;
-        // //this.addChild(WhiteMask);
-        // //WhiteMask.alpha = 0;
-        var back = new engine.Bitmap();
-        back.src = "menu.jpg";
-        GameScene.getCurrentScene().stage.addChild(back);
-        var stageW = 640;
-        var stageH = 1136;
-        back.width = stageW;
-        back.height = stageH;
-        back.y = -150;
-        var count = 0;
-        engine.Ticker.getInstance().register(function () {
-            if (count < 5) {
-                back.scaleY *= 1.003;
-            }
-            else if (count < 10 || count >= 5) {
-                back.scaleY /= 1.003;
-            }
-            count += 0.5;
-            if (count >= 10) {
-                count = 0;
-            }
-        });
-        var Title = new engine.TextField();
-        //Title.textColor = 0xffffff;
-        //Title.width = stageW - 172;
-        // Title.textAlign = "center";
-        Title.text = "二维位面之纯形争霸";
-        Title.size = '50';
-        Title.font = '黑体';
-        Title.x = 100;
-        Title.y = 100;
-        GameScene.getCurrentScene().stage.addChild(Title);
-        var start = new engine.TextField();
-        // start.textColor = 0xffffff;
-        // start.width = stageW - 172;
-        // start.textAlign = "center";
-        start.text = "开始游戏";
-        start.size = '40';
-        start.font = '黑体';
-        start.x = 90;
-        start.y = 800;
-        GameScene.getCurrentScene().stage.addChild(start);
-        var material = new engine.TextField();
-        // material.textColor = 0xffffff;
-        // material.width = stageW - 172;
-        // material.textAlign = "center";
-        material.text = "背景资料";
-        material.size = '40';
-        material.font = '黑体';
-        material.x = 90;
-        material.y = 850;
-        GameScene.getCurrentScene().stage.addChild(material);
-        // material.touchEnabled = true;
-        // material.addEventListener(engine.TouchEvent.TOUCH_TAP, () => {
-        //     var p = new PageContainer();
-        //     GameScene.getCurrentScene().stage.removeAll();
-        //     GameScene.getCurrentScene().stage.addChild(p);
-        // })
-        var about = new engine.TextField();
-        // about.textColor = 0xffffff;
-        // about.width = stageW - 172;
-        // about.textAlign = "center";
-        about.text = "游戏理念";
-        about.size = '40';
-        about.font = '黑体';
-        about.x = 90;
-        about.y = 900;
-        GameScene.getCurrentScene().stage.addChild(about);
-        about.touchEnabled = true;
-        about.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-            GameScene.getCurrentScene().stage.removeAll();
-            UIScene.getCurrentScene().gameabout();
-        });
-        start.touchEnabled = true;
-        start.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-            GameScene.getCurrentScene().stage.removeChild(start);
-            GameScene.getCurrentScene().stage.removeChild(material);
-            GameScene.getCurrentScene().stage.removeChild(about);
-            GameScene.getCurrentScene().stage.removeChild(Title);
-            GameScene.getCurrentScene().stage.removeChild(back);
-            UIScene.getCurrentScene().showPick();
-        });
-    };
-    UIScene.prototype.showPick = function () {
-        var _this = this;
-        var pick = new engine.TextField();
-        // pick.textColor = 0xffffff;
-        // pick.width = 640 - 172;
-        // pick.textAlign = "center";
-        pick.text = "选择进入一名纯形战士视角";
-        pick.size = '36';
-        pick.font = '黑体';
-        pick.x = 90;
-        pick.y = 400;
-        GameScene.getCurrentScene().stage.addChild(pick);
-        var sanjiao = new engine.TextField();
-        // sanjiao.textColor = 0xffffff;
-        // sanjiao.width = 640 - 172;
-        // sanjiao.textAlign = "center";
-        sanjiao.text = "▲三角（善于迂回和远程输出）";
-        sanjiao.size = '30';
-        sanjiao.font = '黑体';
-        sanjiao.x = 90;
-        sanjiao.y = 600;
-        GameScene.getCurrentScene().stage.addChild(sanjiao);
-        sanjiao.touchEnabled = true;
-        sanjiao.addEventListener(engine.TouchEvent.TOUCH_BEGIN, function () {
-            _this.ad = "sanjiao_png";
-            switch (_this.ad) {
-                case "sanjiao_png":
-                    console.log("sanjiao");
-                    _this.hero = SetTriangle(0);
-                    break;
-                case "fangkuai_png":
-                    _this.hero = SetSquare(0);
-                    break;
-                case "zhengyuan_png":
-                    _this.hero = SetCircle(0);
-                    break;
-            }
-            GameScene.getCurrentScene().stage.removeChild(pick);
-            GameScene.getCurrentScene().stage.removeChild(sanjiao);
-            GameScene.getCurrentScene().stage.removeChild(fangkuai);
-            GameScene.getCurrentScene().stage.removeChild(zhengyuan);
-            _this.gamestart();
-        });
-        var fangkuai = new engine.TextField();
-        // fangkuai.textColor = 0xffffff;
-        // fangkuai.width = 640 - 172;
-        // fangkuai.textAlign = "center";
-        fangkuai.text = "■方块（侵略性强并善于近战）";
-        fangkuai.size = '30';
-        fangkuai.font = '黑体';
-        fangkuai.x = 90;
-        fangkuai.y = 650;
-        GameScene.getCurrentScene().stage.addChild(fangkuai);
-        fangkuai.touchEnabled = true;
-        fangkuai.addEventListener(engine.TouchEvent.TOUCH_BEGIN, function () {
-            _this.ad = "fangkuai_png";
-            switch (_this.ad) {
-                case "sanjiao_png":
-                    console.log("sanjiao");
-                    _this.hero = SetTriangle(0);
-                    break;
-                case "fangkuai_png":
-                    _this.hero = SetSquare(0);
-                    break;
-                case "zhengyuan_png":
-                    _this.hero = SetCircle(0);
-                    break;
-            }
-            GameScene.getCurrentScene().stage.removeChild(pick);
-            GameScene.getCurrentScene().stage.removeChild(sanjiao);
-            GameScene.getCurrentScene().stage.removeChild(fangkuai);
-            GameScene.getCurrentScene().stage.removeChild(zhengyuan);
-            _this.gamestart();
-        });
-        var zhengyuan = new engine.TextField();
-        // zhengyuan.textColor = 0xffffff;
-        // zhengyuan.width = 640 - 172;
-        // zhengyuan.textAlign = "center";
-        zhengyuan.text = "●正圆（兼具灵活性和消耗战）";
-        zhengyuan.size = '30';
-        zhengyuan.font = '黑体';
-        zhengyuan.x = 90;
-        zhengyuan.y = 700;
-        GameScene.getCurrentScene().stage.addChild(zhengyuan);
-        zhengyuan.touchEnabled = true;
-        zhengyuan.addEventListener(engine.TouchEvent.TOUCH_BEGIN, function () {
-            _this.ad = "zhengyuan_png";
-            switch (_this.ad) {
-                case "sanjiao_png":
-                    console.log("sanjiao");
-                    _this.hero = SetTriangle(0);
-                    break;
-                case "fangkuai_png":
-                    _this.hero = SetSquare(0);
-                    break;
-                case "zhengyuan_png":
-                    _this.hero = SetCircle(0);
-                    break;
-            }
-            GameScene.getCurrentScene().stage.removeChild(pick);
-            GameScene.getCurrentScene().stage.removeChild(sanjiao);
-            GameScene.getCurrentScene().stage.removeChild(fangkuai);
-            GameScene.getCurrentScene().stage.removeChild(zhengyuan);
-            _this.gamestart();
-        });
-    };
-    UIScene.prototype.gameabout = function () {
-        var rect = new engine.Shape();
-        var textField = new engine.TextField();
-        rect.graphics.beginFill(0x000000, 1);
-        rect.graphics.drawRect(0, 0, 640, 1136);
-        rect.graphics.endFill();
-        GameScene.getCurrentScene().stage.addChild(rect);
-        textField.text = "作者 14081216 白宇昆\n这是一款半即时的战棋对抗游戏\n改编的刘慈欣的《镜子》作为剧情背景\n在二维位面里\n形状越正，血统越纯\n面积=血量，边长=速度\n借几何喻人，反应现实\n未来可能会加入的新细节\n根据随机的颜色改变敌人的属性\nR攻击撞击力\nG连接深入能力\nB特殊攻击能力\n六边形，三角形等对战地图";
-        GameScene.getCurrentScene().stage.addChild(textField);
-        textField.size = '30';
-        textField.y = 200;
-        textField.x = 60;
-        //textField.width = 620;
-        var back = new engine.TextField();
-        back.text = "返回";
-        back.size = '30';
-        back.touchEnabled = true;
-        back.y = 900;
-        back.x = 300;
-        GameScene.getCurrentScene().stage.addChild(back);
-        back.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-            GameScene.getCurrentScene().stage.removeAll();
-            UIScene.getCurrentScene().gameMenu();
-        });
-    };
-    UIScene.prototype.gamestart = function () {
-        var equipmentButtun = new engine.TextField();
-        equipmentButtun.text = "状态";
-        equipmentButtun.size = '40';
-        equipmentButtun.x = 280;
-        equipmentButtun.y = 1000;
-        GameScene.getCurrentScene().stage.addChild(equipmentButtun);
-        equipmentButtun.touchEnabled = true;
-        equipmentButtun.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-            if (PropertyPanel.flag == 0) {
-                console.log(PropertyPanel.flag);
-                var pp = new PropertyPanel(UIScene.getCurrentScene().hero);
-                GameScene.getCurrentScene().stage.addChild(pp);
-            }
-        });
-        var Dpanel_1 = new DialoguePanel("年轻纯种的纯形战士，我已经被腐化了\n去找还有希望被拯救的形状吧");
-        var Dpanel_2 = new DialoguePanel("变得不规则好像也没什么不好\n先跟我较量看看吧");
-        this.dp1 = Dpanel_1;
-        this.dp2 = Dpanel_2;
-        var NPC_1 = new NPC("NPC_1", "npc_1_png", TileMap.TILE_SIZE * 4, TileMap.TILE_SIZE * 4, this.dp1);
-        var NPC_2 = new NPC("NPC_2", "npc_2_png", TileMap.TILE_SIZE * 6, TileMap.TILE_SIZE * 12, this.dp2);
-        this.dp1.linkNPC = NPC_1;
-        this.dp2.linkNPC = NPC_2;
-        this.NPC_1 = NPC_1;
-        this.NPC_2 = NPC_2;
-        var task_0 = new Task("000", "对话任务", new NPCTalkTaskCondition(), 0);
-        task_0.fromNpcId = "NPC_1";
-        task_0.toNpcId = "NPC_2";
-        task_0.desc = "救援伤残纯形几何体";
-        task_0.NPCTaskTalk = "纯形的未来由你来守护！";
-        task_0.total = 1;
-        task_0.status = TaskStatus.ACCEPTABLE;
-        var task_1 = new Task("001", "战斗任务", new KillMonsterTaskCondition(), 1);
-        task_1.fromNpcId = "NPC_2";
-        task_1.toNpcId = "NPC_2";
-        task_1.desc = "寻访下方的几何体";
-        task_1.NPCTaskTalk = "哈哈哈哈哈，放荡不羁";
-        task_1.total = 1;
-        task_1.status = TaskStatus.UNACCEPTABLE;
-        TaskService.getInstance().addTask(task_0);
-        TaskService.getInstance().addTask(task_1);
-        var mainPanel = new TaskPanel(50, 850);
-        this.taskPanel = mainPanel;
-        TaskService.getInstance().addObserver(mainPanel);
-        TaskService.getInstance().addObserver(NPC_1);
-        TaskService.getInstance().addObserver(NPC_2);
-        TaskService.getInstance().notify(TaskService.getInstance().getTaskByCustomRule());
-        this.dp1.updateViewByTask(TaskService.getInstance().getTaskByCustomRule());
-        this.dp2.updateViewByTask(TaskService.getInstance().getTaskByCustomRule());
-        // var monster_1: MockKillMonsterButton = new MockKillMonsterButton("engine_icon_png", "001");
-        // this.addChild(monster_1);
-        // monster_1.body.x = 350;
-        // monster_1.body.y = 600;
-        this.item = new Item("五角星型残骸", "star_png", 5, TileMap.TILE_SIZE * 10, TileMap.TILE_SIZE * 1);
-        var player = new Player(this.ad);
-        GameScene.getCurrentScene().player = player;
-        var map = new TileMap(GameScene.getCurrentScene().player);
-        this.map = map;
-        GameScene.getCurrentScene().stage.addChild(map);
-        GameScene.getCurrentScene().stage.addChild(GameScene.getCurrentScene().player);
-        GameScene.getCurrentScene().player.idle();
-        var monster_1 = new Monster("buguize_2_png", "003");
-        SceneService.getInstance().addObserver(monster_1);
-        SceneService.getInstance().addObserver(task_1.condition);
-        monster_1.x = TileMap.TILE_SIZE * randomnum(4, 2);
-        monster_1.y = TileMap.TILE_SIZE * 10;
-        GameScene.getCurrentScene().stage.addChild(monster_1);
-        this.map.replaceMap(monster_1);
-        var monster_2 = new Monster("buguize_2_png", "003");
-        SceneService.getInstance().addObserver(monster_2);
-        monster_2.x = TileMap.TILE_SIZE * 6;
-        monster_2.y = TileMap.TILE_SIZE * 9;
-        GameScene.getCurrentScene().stage.addChild(monster_2);
-        this.map.replaceMap(monster_2);
-        var monster_3 = new Monster("buguize_2_png", "003");
-        SceneService.getInstance().addObserver(monster_3);
-        monster_3.x = TileMap.TILE_SIZE * 5;
-        monster_3.y = TileMap.TILE_SIZE * 13;
-        GameScene.getCurrentScene().stage.addChild(monster_3);
-        this.map.replaceMap(monster_3);
-        GameScene.getCurrentScene().stage.addChild(NPC_1);
-        GameScene.getCurrentScene().stage.addChild(NPC_2);
-        GameScene.getCurrentScene().stage.addChild(this.dp1);
-        GameScene.getCurrentScene().stage.addChild(this.dp2);
-        GameScene.getCurrentScene().stage.addChild(this.item);
-        GameScene.getCurrentScene().stage.addChild(mainPanel);
-        setTimeout(function () {
-            if (task_1.status == TaskStatus.SUBMITED) {
-                GameScene.getCurrentScene().stage.removeAll();
-                UIScene.getCurrentScene().gamebadend();
-            }
-        }, this, 2000);
-    };
-    UIScene.prototype.gameContinue = function () {
-        var stageW = 640;
-        var stageH = 1136;
-        var BlackMask = new engine.Shape();
-        BlackMask.graphics.beginFill(0x000000, 1);
-        BlackMask.graphics.drawRect(0, 0, stageW, stageH);
-        BlackMask.graphics.endFill();
-        BlackMask.graphics.width = stageW;
-        BlackMask.graphics.height = stageH;
-        GameScene.getCurrentScene().stage.addChild(BlackMask);
-        var equipmentButtun = new engine.TextField();
-        equipmentButtun.text = "状态";
-        equipmentButtun.size = '40';
-        equipmentButtun.x = 280;
-        equipmentButtun.y = 1000;
-        GameScene.getCurrentScene().stage.addChild(equipmentButtun);
-        equipmentButtun.touchEnabled = true;
-        equipmentButtun.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-            if (PropertyPanel.flag == 0) {
-                console.log(PropertyPanel.flag);
-                var pp = new PropertyPanel(UIScene.getCurrentScene().hero);
-                GameScene.getCurrentScene().stage.addChild(pp);
-            }
-        });
-        GameScene.getCurrentScene().stage.addChild(this.map);
-        GameScene.getCurrentScene().stage.addChild(GameScene.getCurrentScene().player);
-        GameScene.getCurrentScene().player.idle();
-        GameScene.getCurrentScene().stage.addChild(this.taskPanel);
-        GameScene.getCurrentScene().stage.addChild(this.NPC_1);
-        GameScene.getCurrentScene().stage.addChild(this.NPC_2);
-        GameScene.getCurrentScene().stage.addChild(this.dp1);
-        GameScene.getCurrentScene().stage.addChild(this.dp2);
-        //GameScene.getCurrentScene().main.addChild(this.item);
-    };
-    UIScene.prototype.gamebadend = function () {
-        var no = new engine.Bitmap();
-        no.src = "End_jpg";
-        no.width = 640;
-        no.height = 1134;
-        GameScene.getCurrentScene().stage.addChild(no);
-        var back = new engine.TextField();
-        back.text = "返回主菜单";
-        back.size = '30';
-        back.touchEnabled = true;
-        back.y = 900;
-        back.x = 250;
-        GameScene.getCurrentScene().stage.addChild(back);
-        back.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-            GameScene.getCurrentScene().stage.removeAll();
-            UIScene.getCurrentScene().gameMenu();
-        });
-    };
-    UIScene.prototype.gamehappyend = function () {
-        var blackback = new engine.Shape();
-        blackback.graphics.beginFill(0x000000, 1);
-        blackback.graphics.drawRect(0, 0, 640, 1134);
-        blackback.graphics.endFill();
-        blackback.graphics.width = 640;
-        blackback.graphics.height = 1134;
-        GameScene.getCurrentScene().stage.addChild(blackback);
-        var win = new engine.TextField();
-        // win.textColor = 0xffffff;
-        // win.width = 640 - 172;
-        // win.textAlign = "center";
-        win.text = "纯形战士战胜了不规则几何体，但战斗仍将继续！";
-        win.size = '50';
-        win.font = '黑体';
-        win.x = 100;
-        win.y = 300;
-        GameScene.getCurrentScene().stage.addChild(win);
-        var back = new engine.TextField();
-        back.text = "返回主菜单";
-        back.size = '30';
-        back.touchEnabled = true;
-        back.y = 900;
-        back.x = 250;
-        GameScene.getCurrentScene().stage.addChild(back);
-        back.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-            GameScene.getCurrentScene().stage.removeAll();
-            UIScene.getCurrentScene().gameMenu();
-        });
-        var bcontinue = new engine.TextField();
-        bcontinue.text = "继续游戏";
-        bcontinue.size = '30';
-        bcontinue.touchEnabled = true;
-        bcontinue.y = 800;
-        bcontinue.x = 250;
-        GameScene.getCurrentScene().stage.addChild(bcontinue);
-        bcontinue.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-            GameScene.getCurrentScene().stage.removeAll();
-            UIScene.getCurrentScene().gameContinue();
-        });
-    };
-    return UIScene;
-}());
-var Skill = (function (_super) {
-    __extends(Skill, _super);
-    function Skill(data) {
-        var _this = _super.call(this) || this;
-        _this.data = data;
-        for (var i = 0; i < skillconfig.length; i++) {
-            var data = skillconfig[i];
-        }
-        return _this;
-        // this.name = name;
-        // this.inf = inf;
-        // this.ratio = ratio
-        // this.MPneed = MPneed;
-        // this.distance = distance;
-        // this.type = type;
-        // this.num = num;
-    }
-    return Skill;
-}(engine.DisplayObjectContainer));
-var SkillConstructor = (function (_super) {
-    __extends(SkillConstructor, _super);
-    function SkillConstructor(data) {
-        var _this = _super.call(this) || this;
-        _this.data = data;
-        var bitmap = new engine.Bitmap();
-        bitmap.src = data.image;
-        bitmap.width = 128;
-        bitmap.height = 128;
-        _this.addChild(bitmap);
-        _this.x = data.x;
-        _this.y = data.y;
-        var tfname = new engine.TextField();
-        tfname.text = data.name;
-        _this.addChild(tfname);
-        bitmap.touchEnabled = true;
-        bitmap.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
-        });
-        bitmap.addEventListener(engine.TouchEvent.TOUCH_BEGIN, function () {
-        });
-        return _this;
-    }
-    SkillConstructor.prototype.showSkillsInformation = function () {
-    };
-    return SkillConstructor;
-}(engine.DisplayObjectContainer));
-var SkillType;
-(function (SkillType) {
-    SkillType[SkillType["hurt"] = 0] = "hurt";
-    SkillType[SkillType["speedbuff"] = 1] = "speedbuff";
-    SkillType[SkillType["atkbuff"] = 2] = "atkbuff";
-    SkillType[SkillType["HPbuff"] = 3] = "HPbuff";
-    SkillType[SkillType["move"] = 4] = "move";
-    SkillType[SkillType["roll"] = 5] = "roll";
-    SkillType[SkillType["jump"] = 6] = "jump"; //跳跃
-})(SkillType || (SkillType = {}));
-var skillconfig = [
-    { x: 30, y: 900, name: "射击", image: "Skill_1_png", inf: "普通远程攻击", ratio: 100, MPneed: 5, distance: 2, type: 0, num: 1 },
-    { x: 160, y: 900, name: "轰击", image: "Skill_2_png", inf: "聚集锋芒的重型远程攻击", ratio: 350, MPneed: 70, distance: 3, type: 0, num: 1 },
-    { x: 290, y: 900, name: "划击", image: "Skill_3_png", inf: "不擅长的近战攻击", ratio: 80, MPneed: 0, distance: 1, type: 0, num: 1 },
-    { x: 420, y: 900, name: "尖锐化", image: "Skill_4_png", inf: "三角高速旋转，本回合增加行动次数", ratio: 100, MPneed: 50, distance: 0, type: 1, num: 1 },
-    { x: 550, y: 900, name: "三角移动", image: "Skill_5_png", inf: "移动一格并回复10MP", ratio: 0, MPneed: -10, distance: 1, type: 4, num: 1 },
-    { x: 30, y: 900, name: "棱刮", image: "", inf: "普通近战攻击", ratio: 100, MPneed: 0, distance: 1, type: 0, num: 2 },
-    { x: 160, y: 900, name: "格式打击", image: "", inf: "猛扑对敌人造成重创", ratio: 250, MPneed: 50, distance: 1, type: 0, num: 2 },
-    { x: 290, y: 900, name: "空格", image: "", inf: "向所指方向跳跃一格并撞击敌人", ratio: 125, MPneed: 30, distance: 2, type: 6, num: 2 },
-    { x: 420, y: 900, name: "栅格化", image: "", inf: "方块变得更方了，本次战斗中永久提升攻击力", ratio: 150, MPneed: 5, distance: 2, type: 2, num: 2 },
-    { x: 550, y: 900, name: "方块移动", image: "", inf: "上下左右一格的范围", ratio: 0, MPneed: 0, distance: 1, type: 4, num: 2 },
-    { x: 30, y: 900, name: "碾压", image: "", inf: "普通攻击，命中后回复8MP", ratio: 125, MPneed: -8, distance: 1, type: 0, num: 3 },
-    { x: 160, y: 900, name: "飞盘", image: "", inf: "正圆自身的投影攻击远程攻击，命中后回复5MP", ratio: 100, MPneed: -5, distance: 2, type: 0, num: 3 },
-    { x: 290, y: 900, name: "翻滚", image: "", inf: "直线大幅度移动，回复2MP", ratio: 0, MPneed: -2, distance: 5, type: 5, num: 3 },
-    { x: 420, y: 900, name: "圆滑化", image: "", inf: "正圆变得更加圆润光滑，按当前比例增长HP", ratio: 150, MPneed: 100, distance: 2, type: 3, num: 3 },
-    { x: 550, y: 900, name: "正圆移动", image: "", inf: "上下左右一格的范围", ratio: 0, MPneed: 0, distance: 1, type: 4, num: 3 },
-    { x: 30, y: 900, name: "不规则攻击", image: "", inf: "杂鱼也能打败纯形英雄", ratio: 100, MPneed: 0, distance: 3, type: 0, num: 4 },
-    { x: 160, y: 900, name: "不规则移动", image: "", inf: "上下左右一格的范围", ratio: 0, MPneed: 0, distance: 1, type: 4, num: 4 },
-];
-var Task = (function () {
-    function Task(id, name, condition, type) {
-        this._current = 0;
-        this._id = id;
-        this._name = name;
-        this._condition = condition;
-        this.type = type;
-    }
-    Task.prototype.checkStatus = function () {
-        if (this._status == TaskStatus.DURING &&
-            this._current >= this.total) {
-            this._status = TaskStatus.CAN_SUBMIT;
-        }
-        TaskService.getInstance().notify(this);
-    };
-    Object.defineProperty(Task.prototype, "condition", {
-        get: function () {
-            return this._condition;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "status", {
-        get: function () {
-            return this._status;
-        },
-        set: function (value) {
-            this._status = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            this._id = id;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "name", {
-        get: function () {
-            return this._name;
-        },
-        set: function (name) {
-            this._name = name;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Task.prototype.getcurrent = function () {
-        return this._current;
-    };
-    Task.prototype.setcurrent = function (current) {
-        this._current = current;
-        this.checkStatus();
-    };
-    Task.prototype.onAccept = function () {
-        this._condition.onAccept(this);
-    };
-    return Task;
-}());
-var TaskStatus;
-(function (TaskStatus) {
-    TaskStatus[TaskStatus["UNACCEPTABLE"] = 0] = "UNACCEPTABLE";
-    TaskStatus[TaskStatus["ACCEPTABLE"] = 1] = "ACCEPTABLE";
-    TaskStatus[TaskStatus["DURING"] = 2] = "DURING";
-    TaskStatus[TaskStatus["CAN_SUBMIT"] = 3] = "CAN_SUBMIT";
-    TaskStatus[TaskStatus["SUBMITED"] = 4] = "SUBMITED";
-})(TaskStatus || (TaskStatus = {}));
-var TaskType;
-(function (TaskType) {
-    TaskType[TaskType["Talk"] = 0] = "Talk";
-    TaskType[TaskType["Kill"] = 1] = "Kill";
-})(TaskType || (TaskType = {}));
-var KillMonsterTaskCondition = (function () {
-    function KillMonsterTaskCondition() {
-    }
-    KillMonsterTaskCondition.prototype.onAccept = function (task) {
-        task.setcurrent(task.getcurrent());
-    };
-    KillMonsterTaskCondition.prototype.onSubmit = function (task) {
-    };
-    KillMonsterTaskCondition.prototype.onChange = function (task) {
-        var temp = task.getcurrent();
-        temp++;
-        task.setcurrent(temp);
-    };
-    return KillMonsterTaskCondition;
-}());
-var NPCTalkTaskCondition = (function () {
-    function NPCTalkTaskCondition() {
-    }
-    NPCTalkTaskCondition.prototype.onAccept = function (task) {
-        //task.current++;
-        // var temp = 0;
-        // temp = task.getcurrent();
-        task.setcurrent(1);
-    };
-    NPCTalkTaskCondition.prototype.onSubmit = function (task) {
-    };
-    NPCTalkTaskCondition.prototype.onChange = function (task) {
-    };
-    return NPCTalkTaskCondition;
-}());
-var TaskService = (function () {
-    function TaskService() {
-        this.taskList = {};
-        this.observerList = [];
-        TaskService.count++;
-        if (TaskService.count > 1) {
-            throw "singleton!!!";
-        }
-    }
-    TaskService.getInstance = function () {
-        if (TaskService.instance == null) {
-            TaskService.instance = new TaskService();
-        }
-        return TaskService.instance;
-    };
-    TaskService.prototype.getTaskByCustomRule = function () {
-        for (var id in this.taskList) {
-            var task = this.taskList[id];
-            if (task.status == TaskStatus.CAN_SUBMIT)
-                return task;
-        }
-        for (var id in this.taskList) {
-            var task = this.taskList[id];
-            if (task.status == TaskStatus.ACCEPTABLE)
-                return task;
-        }
-    };
-    TaskService.prototype.getNextTask = function () {
-        for (var id in this.taskList) {
-            var task = this.taskList[id];
-            if (task.status == TaskStatus.UNACCEPTABLE)
-                return task;
-        }
-    };
-    TaskService.prototype.accept = function (id) {
-        if (!id) {
-            return ErrorCode.MISSING_TASK;
-        }
-        var task = this.taskList[id];
-        if (task.id == id) {
-            task.status = TaskStatus.DURING;
-            task.onAccept();
-            console.log("任务状态" + task.status);
-            this.notify(this.taskList[id]);
-            return ErrorCode.SUCCESS;
-        }
-        else {
-            return ErrorCode.MISSING_TASK;
-        }
-    };
-    TaskService.prototype.finish = function (id) {
-        if (!id) {
-            return ErrorCode.MISSING_TASK;
-        }
-        var task = this.taskList[id];
-        if (task.id == id) {
-            console.log("finish");
-            task.status = TaskStatus.SUBMITED;
-            this.notify(this.taskList[id]);
-            return ErrorCode.SUCCESS;
-        }
-        else {
-            return ErrorCode.MISSING_TASK;
-        }
-    };
-    TaskService.prototype.notify = function (task) {
-        // console.log("111");
-        for (var _i = 0, _a = this.observerList; _i < _a.length; _i++) {
-            var observer = _a[_i];
-            observer.onChange(task);
-        }
-    };
-    TaskService.prototype.addTask = function (task) {
-        this.taskList[task.id] = task;
-    };
-    TaskService.prototype.addObserver = function (observer) {
-        for (var i = 0; i < this.observerList.length; i++) {
-            if (observer == this.observerList[i])
-                return ErrorCode.REPEAT_OBSERVER;
-        }
-        this.observerList.push(observer);
-    };
-    return TaskService;
-}());
-TaskService.count = 0;
-var ErrorCode;
-(function (ErrorCode) {
-    ErrorCode[ErrorCode["SUCCESS"] = 0] = "SUCCESS";
-    ErrorCode[ErrorCode["MISSING_TASK"] = 1] = "MISSING_TASK";
-    ErrorCode[ErrorCode["REPEAT_OBSERVER"] = 2] = "REPEAT_OBSERVER";
-})(ErrorCode || (ErrorCode = {}));
-// var canvas = document.getElementById("app") as HTMLCanvasElement;
-// var stage =  engine.run(canvas);
-// var container = new engine.DisplayObjectContainer();
-// stage.addEventListener("mousedown", () => {
-//     console.log("stage");
-// });
-// container.addEventListener("mousedown", () => {
-//     console.log("container");
-// }, true);
-// let tf = new engine.TextField();
-// tf.text = "可以拖动的";
-// //tf.x = 20;
-// //tf.y = 40;
-// tf.touchEnabled = true;
-// tf.addEventListener("mousedown", (e: MouseEvent) => {
-//     console.log("123");
-// });
-// let Button_1 = new engine.Bitmap();
-// Button_1.src = "image.JPG";
-// //Button.x = 50;
-// //Button.y = 50;
-// Button_1.scaleX = 0.3;
-// Button_1.scaleY = 0.3;
-// Button_1.touchEnabled = true;
-// // Button.addEventListener("mousedown", () => { alert("mousedown") });
-// // Button.addEventListener("mouseup", () => { alert("mouseup") });
-// var distanceX;
-// var distanceY;
-// Button_1.addEventListener("mousedown", (e: MouseEvent) => {
-//     if (TouchEventService.getInstance().isMove == false) {
-//         TouchEventService.getInstance().isMove = true;
-//     }
-//     TouchEventService.getInstance().currentX = e.x;
-//     TouchEventService.getInstance().currentY = e.y;
-//     distanceX = TouchEventService.getInstance().currentX - Button_1.x;
-//     distanceY = TouchEventService.getInstance().currentY - Button_1.y;
-// });
-// Button_1.addEventListener("mousemove", (e: MouseEvent) => {
-//     if (TouchEventService.getInstance().isMove == true) {
-//         Button_1.x = TouchEventService.getInstance().currentX - distanceX;
-//         Button_1.y = TouchEventService.getInstance().currentY - distanceY;
-//     }
-//     TouchEventService.getInstance().currentX = e.x;
-//     TouchEventService.getInstance().currentY = e.y;
-// });
-// Button_1.addEventListener("mouseup", (e: MouseEvent) => {
-//     if (TouchEventService.getInstance().isMove == true) {
-//         TouchEventService.getInstance().isMove = false;
-//     }
-// });
-// // stage.addChild(Button);
-// // stage.addChild(tf);
-// stage.addChild(container);
-// //container.addChild(tf);
-// container.addChild(Button_1);
-// container.addChild(tf);
-var canvas = document.getElementById("app");
-var stage = engine.run(canvas);
-var scene = new GameScene();
-GameScene.replaceScene(scene);
-GameScene.getCurrentScene().stage = stage;
-var pickscene = new UIScene();
-UIScene.replaceScene(pickscene);
-UIScene.getCurrentScene().gameMenu();
-//UIScene.getCurrentScene().showPick();
 var User = (function () {
     // pet: pet;
     function User(name) {
@@ -3073,6 +1907,1104 @@ function SetCircle(lv) {
     ];
     return zhengyuan;
 }
+var SceneService = (function () {
+    function SceneService() {
+        this.observerList = [];
+        this.list = new CommandList();
+        SceneService.count++;
+        if (SceneService.count > 1) {
+            throw "singleton!!!";
+        }
+    }
+    SceneService.getInstance = function () {
+        if (SceneService.instance == null) {
+            SceneService.instance = new SceneService();
+        }
+        return SceneService.instance;
+    };
+    SceneService.prototype.addObserver = function (observer) {
+        for (var i = 0; i < this.observerList.length; i++) {
+            if (observer == this.observerList[i])
+                return ErrorCode.REPEAT_OBSERVER;
+        }
+        this.observerList.push(observer);
+    };
+    SceneService.prototype.notify = function (task) {
+        for (var _i = 0, _a = this.observerList; _i < _a.length; _i++) {
+            var observer = _a[_i];
+            observer.onChange(task);
+        }
+    };
+    return SceneService;
+}());
+SceneService.count = 0;
+var GameScene = (function () {
+    function GameScene() {
+    }
+    GameScene.replaceScene = function (scene) {
+        GameScene.scene = scene;
+    };
+    GameScene.getCurrentScene = function () {
+        return GameScene.scene;
+    };
+    GameScene.prototype.moveTo = function (x, y, callback) {
+        var _this = this;
+        console.log("开始移动");
+        var playerX = Math.floor(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE);
+        var playerY = Math.floor(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE);
+        // var playerX: number = 0;
+        // var playerY: number = 0;
+        var gridX = x;
+        var gridY = y;
+        var astar = new AStar();
+        var grid = new Grid(12, 16, testmap);
+        grid.setStartNode(playerX, playerY);
+        grid.setEndNode(gridX, gridY);
+        //console.log(grid._nodes);
+        if (astar.findPath(grid)) {
+            astar._path.map(function (tile) {
+                console.log("x:" + tile.x + ",y:" + tile.y);
+            });
+            var path = astar._path;
+            var current = path.shift();
+            this.ticker = function () {
+                playerX = Math.floor(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE + 0.5);
+                playerY = Math.floor(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE + 0.5);
+                // playerX = Math.ceil(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE);
+                // playerY = Math.ceil(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE);
+                var diffX = TileMap.TILE_SPEED * (current.x - playerX);
+                var diffY = TileMap.TILE_SPEED * (current.y - playerY);
+                GameScene.getCurrentScene().player._body.x += diffX;
+                GameScene.getCurrentScene().player._body.y += diffY;
+                // if (Math.abs(GameScene.getCurrentScene().player._body.x - TileMap.TILE_SIZE * current.x) < TileMap.TILE_SPEED) {
+                // }
+                if (playerX == current.x && playerY == current.y) {
+                    engine.Ticker.getInstance().unregister(_this.ticker);
+                    // var tween = engine.Tween.get(GameScene.getCurrentScene().player._body);
+                    // tween.to({ x: current.x * TileMap.TILE_SIZE, y: current.y * TileMap.TILE_SIZE }, 100);
+                    engine.Ticker.getInstance().register(_this.ticker);
+                    // GameScene.getCurrentScene().player._body.x = current.x * TileMap.TILE_SIZE;
+                    // GameScene.getCurrentScene().player._body.y = current.y * TileMap.TILE_SIZE;
+                    if (astar._path.length == 0) {
+                        engine.Ticker.getInstance().unregister(_this.ticker);
+                        console.log("结束移动");
+                        callback();
+                    }
+                    else {
+                        current = path.shift();
+                    }
+                }
+            };
+            engine.Ticker.getInstance().register(this.ticker);
+            playerX = Math.floor(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE + 0.5);
+            playerY = Math.floor(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE + 0.5);
+        }
+    };
+    GameScene.prototype.stopMove = function (callback) {
+        var playerX = Math.floor(GameScene.getCurrentScene().player._body.x / TileMap.TILE_SIZE + 0.5);
+        var playerY = Math.floor(GameScene.getCurrentScene().player._body.y / TileMap.TILE_SIZE + 0.5);
+        engine.Ticker.getInstance().unregister(this.ticker);
+        GameScene.getCurrentScene().player._body.x = playerX * TileMap.TILE_SIZE;
+        GameScene.getCurrentScene().player._body.y = playerY * TileMap.TILE_SIZE;
+        setTimeout(function () {
+            console.log("中断移动");
+            callback();
+        }, this, 500);
+    };
+    return GameScene;
+}());
+GameScene.scene = new GameScene();
+var UIScene = (function () {
+    function UIScene() {
+    }
+    UIScene.replaceScene = function (scene) {
+        UIScene.scene = scene;
+    };
+    UIScene.getCurrentScene = function () {
+        return UIScene.scene;
+    };
+    UIScene.prototype.gameMenu = function () {
+        var stageW = 640;
+        var stageH = 1136;
+        var BlackMask = new engine.Shape();
+        BlackMask.graphics.beginFill("#000000", 1);
+        BlackMask.graphics.drawRect(0, 0, stageW, stageH);
+        BlackMask.graphics.endFill();
+        BlackMask.graphics.width = stageW;
+        BlackMask.graphics.height = stageH;
+        GameScene.getCurrentScene().stage.addChild(BlackMask);
+        //   UIScene.getCurrentScene().hero = SetTriangle();
+        //   var battle = new Battle(UIScene.getCurrentScene().hero,1,"npc_2_png",6,6);
+        //  GameScene.getCurrentScene().main.addChild(battle);
+        // var WhiteMask = new engine.Shape();
+        // WhiteMask.graphics.beginFill("#FFFFFF", 1);
+        // WhiteMask.graphics.drawRect(0, 0, stageW, stageH);
+        // WhiteMask.graphics.endFill();
+        // WhiteMask.graphics.width = stageW;
+        // WhiteMask.graphics.height = stageH;
+        // //this.addChild(WhiteMask);
+        // //WhiteMask.alpha = 0;
+        var back = new engine.Bitmap();
+        back.src = "menu.jpg";
+        GameScene.getCurrentScene().stage.addChild(back);
+        var stageW = 640;
+        var stageH = 1136;
+        back.width = stageW;
+        back.height = stageH;
+        back.y = -150;
+        var count = 0;
+        engine.Ticker.getInstance().register(function () {
+            if (count < 5) {
+                back.scaleY *= 1.003;
+            }
+            else if (count < 10 || count >= 5) {
+                back.scaleY /= 1.003;
+            }
+            count += 0.5;
+            if (count >= 10) {
+                count = 0;
+            }
+        });
+        var Title = new engine.TextField();
+        //Title.textColor = #ffffff;
+        //Title.width = stageW - 172;
+        // Title.textAlign = "center";
+        Title.text = "二维位面之纯形争霸";
+        Title.size = '50';
+        Title.font = '黑体';
+        Title.x = 100;
+        Title.y = 100;
+        GameScene.getCurrentScene().stage.addChild(Title);
+        var start = new engine.TextField();
+        // start.textColor = #ffffff;
+        // start.width = stageW - 172;
+        // start.textAlign = "center";
+        start.text = "开始游戏2";
+        start.size = '40';
+        start.font = '黑体';
+        start.x = 90;
+        start.y = 800;
+        GameScene.getCurrentScene().stage.addChild(start);
+        start.touchEnabled = true;
+        start.addEventListener(engine.TouchEvent.TOUCH_TAP, function () {
+            console.log(start);
+            GameScene.getCurrentScene().stage.removeChild(start);
+            GameScene.getCurrentScene().stage.removeChild(material);
+            GameScene.getCurrentScene().stage.removeChild(about);
+            GameScene.getCurrentScene().stage.removeChild(Title);
+            GameScene.getCurrentScene().stage.removeChild(back);
+            UIScene.getCurrentScene().showPick();
+        });
+        var material = new engine.TextField();
+        // material.textColor = #ffffff;
+        // material.width = stageW - 172;
+        // material.textAlign = "center";
+        material.text = "背景资料";
+        material.size = '40';
+        material.font = '黑体';
+        material.x = 90;
+        material.y = 850;
+        GameScene.getCurrentScene().stage.addChild(material);
+        // material.touchEnabled = true;
+        // material.addEventListener(engine.TouchEvent.TOUCH_TAP, () => {
+        //     var p = new PageContainer();
+        //     GameScene.getCurrentScene().stage.removeAll();
+        //     GameScene.getCurrentScene().stage.addChild(p);
+        // })
+        var about = new engine.TextField();
+        // about.textColor = #ffffff;
+        // about.width = stageW - 172;
+        // about.textAlign = "center";
+        about.text = "游戏理念";
+        about.size = '40';
+        about.font = '黑体';
+        about.x = 90;
+        about.y = 900;
+        GameScene.getCurrentScene().stage.addChild(about);
+        about.touchEnabled = true;
+        about.addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
+            GameScene.getCurrentScene().stage.removeAll();
+            UIScene.getCurrentScene().gameabout();
+        });
+    };
+    UIScene.prototype.showPick = function () {
+        var _this = this;
+        var pick = new engine.TextField();
+        // pick.textColor = #ffffff;
+        // pick.width = 640 - 172;
+        // pick.textAlign = "center";
+        pick.text = "选择进入一名纯形战士视角";
+        pick.size = '36';
+        pick.font = '黑体';
+        pick.x = 90;
+        pick.y = 400;
+        GameScene.getCurrentScene().stage.addChild(pick);
+        var sanjiao = new engine.TextField();
+        // sanjiao.textColor = #ffffff;
+        // sanjiao.width = 640 - 172;
+        // sanjiao.textAlign = "center";
+        sanjiao.text = "▲三角（善于迂回和远程输出）";
+        sanjiao.size = '30';
+        sanjiao.font = '黑体';
+        sanjiao.x = 90;
+        sanjiao.y = 600;
+        GameScene.getCurrentScene().stage.addChild(sanjiao);
+        sanjiao.touchEnabled = true;
+        sanjiao.addEventListener(engine.TouchEvent.TOUCH_BEGIN, function (e) {
+            _this.ad = "sanjiao_png";
+            switch (_this.ad) {
+                case "sanjiao_png":
+                    console.log("sanjiao");
+                    _this.hero = SetTriangle(0);
+                    break;
+                case "fangkuai_png":
+                    _this.hero = SetSquare(0);
+                    break;
+                case "zhengyuan_png":
+                    _this.hero = SetCircle(0);
+                    break;
+            }
+            GameScene.getCurrentScene().stage.removeChild(pick);
+            GameScene.getCurrentScene().stage.removeChild(sanjiao);
+            GameScene.getCurrentScene().stage.removeChild(fangkuai);
+            GameScene.getCurrentScene().stage.removeChild(zhengyuan);
+            _this.gamestart();
+        });
+        var fangkuai = new engine.TextField();
+        // fangkuai.textColor = #ffffff;
+        // fangkuai.width = 640 - 172;
+        // fangkuai.textAlign = "center";
+        fangkuai.text = "■方块（侵略性强并善于近战）";
+        fangkuai.size = '30';
+        fangkuai.font = '黑体';
+        fangkuai.x = 90;
+        fangkuai.y = 650;
+        GameScene.getCurrentScene().stage.addChild(fangkuai);
+        fangkuai.touchEnabled = true;
+        fangkuai.addEventListener(engine.TouchEvent.TOUCH_BEGIN, function (e) {
+            _this.ad = "fangkuai_png";
+            switch (_this.ad) {
+                case "sanjiao_png":
+                    console.log("sanjiao");
+                    _this.hero = SetTriangle(0);
+                    break;
+                case "fangkuai_png":
+                    _this.hero = SetSquare(0);
+                    break;
+                case "zhengyuan_png":
+                    _this.hero = SetCircle(0);
+                    break;
+            }
+            GameScene.getCurrentScene().stage.removeChild(pick);
+            GameScene.getCurrentScene().stage.removeChild(sanjiao);
+            GameScene.getCurrentScene().stage.removeChild(fangkuai);
+            GameScene.getCurrentScene().stage.removeChild(zhengyuan);
+            _this.gamestart();
+        });
+        var zhengyuan = new engine.TextField();
+        // zhengyuan.textColor = #ffffff;
+        // zhengyuan.width = 640 - 172;
+        // zhengyuan.textAlign = "center";
+        zhengyuan.text = "●正圆（兼具灵活性和消耗战）";
+        zhengyuan.size = '30';
+        zhengyuan.font = '黑体';
+        zhengyuan.x = 90;
+        zhengyuan.y = 700;
+        GameScene.getCurrentScene().stage.addChild(zhengyuan);
+        zhengyuan.touchEnabled = true;
+        zhengyuan.addEventListener(engine.TouchEvent.TOUCH_BEGIN, function (e) {
+            _this.ad = "zhengyuan_png";
+            switch (_this.ad) {
+                case "sanjiao_png":
+                    console.log("sanjiao");
+                    _this.hero = SetTriangle(0);
+                    break;
+                case "fangkuai_png":
+                    _this.hero = SetSquare(0);
+                    break;
+                case "zhengyuan_png":
+                    _this.hero = SetCircle(0);
+                    break;
+            }
+            GameScene.getCurrentScene().stage.removeChild(pick);
+            GameScene.getCurrentScene().stage.removeChild(sanjiao);
+            GameScene.getCurrentScene().stage.removeChild(fangkuai);
+            GameScene.getCurrentScene().stage.removeChild(zhengyuan);
+            _this.gamestart();
+        });
+    };
+    UIScene.prototype.gameabout = function () {
+        var rect = new engine.Shape();
+        var textField = new engine.TextField();
+        rect.graphics.beginFill("#000000", 1);
+        rect.graphics.drawRect(0, 0, 640, 1136);
+        rect.graphics.endFill();
+        GameScene.getCurrentScene().stage.addChild(rect);
+        textField.text = "作者 14081216 白宇昆\n这是一款半即时的战棋对抗游戏\n改编的刘慈欣的《镜子》作为剧情背景\n在二维位面里\n形状越正，血统越纯\n面积=血量，边长=速度\n借几何喻人，反应现实\n未来可能会加入的新细节\n根据随机的颜色改变敌人的属性\nR攻击撞击力\nG连接深入能力\nB特殊攻击能力\n六边形，三角形等对战地图";
+        GameScene.getCurrentScene().stage.addChild(textField);
+        textField.size = '30';
+        textField.y = 200;
+        textField.x = 60;
+        //textField.width = 620;
+        var back = new engine.TextField();
+        back.text = "返回";
+        back.size = '30';
+        back.touchEnabled = true;
+        back.y = 900;
+        back.x = 300;
+        GameScene.getCurrentScene().stage.addChild(back);
+        back.addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
+            GameScene.getCurrentScene().stage.removeAll();
+            UIScene.getCurrentScene().gameMenu();
+        });
+    };
+    UIScene.prototype.gamestart = function () {
+        var equipmentButtun = new engine.TextField();
+        equipmentButtun.text = "状态";
+        equipmentButtun.size = '40';
+        equipmentButtun.x = 280;
+        equipmentButtun.y = 1000;
+        GameScene.getCurrentScene().stage.addChild(equipmentButtun);
+        equipmentButtun.touchEnabled = true;
+        equipmentButtun.addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
+            if (PropertyPanel.flag == 0) {
+                console.log(PropertyPanel.flag);
+                var pp = new PropertyPanel(UIScene.getCurrentScene().hero);
+                GameScene.getCurrentScene().stage.addChild(pp);
+            }
+        });
+        var Dpanel_1 = new DialoguePanel("年轻纯种的纯形战士，我已经被腐化了\n去找还有希望被拯救的形状吧");
+        var Dpanel_2 = new DialoguePanel("变得不规则好像也没什么不好\n先跟我较量看看吧");
+        this.dp1 = Dpanel_1;
+        this.dp2 = Dpanel_2;
+        var NPC_1 = new NPC("NPC_1", "npc_1_png", TileMap.TILE_SIZE * 4, TileMap.TILE_SIZE * 4, this.dp1);
+        var NPC_2 = new NPC("NPC_2", "npc_2_png", TileMap.TILE_SIZE * 6, TileMap.TILE_SIZE * 12, this.dp2);
+        this.dp1.linkNPC = NPC_1;
+        this.dp2.linkNPC = NPC_2;
+        this.NPC_1 = NPC_1;
+        this.NPC_2 = NPC_2;
+        var task_0 = new Task("000", "对话任务", new NPCTalkTaskCondition(), 0);
+        task_0.fromNpcId = "NPC_1";
+        task_0.toNpcId = "NPC_2";
+        task_0.desc = "救援伤残纯形几何体";
+        task_0.NPCTaskTalk = "纯形的未来由你来守护！";
+        task_0.total = 1;
+        task_0.status = TaskStatus.ACCEPTABLE;
+        var task_1 = new Task("001", "战斗任务", new KillMonsterTaskCondition(), 1);
+        task_1.fromNpcId = "NPC_2";
+        task_1.toNpcId = "NPC_2";
+        task_1.desc = "寻访下方的几何体";
+        task_1.NPCTaskTalk = "哈哈哈哈哈，放荡不羁";
+        task_1.total = 1;
+        task_1.status = TaskStatus.UNACCEPTABLE;
+        TaskService.getInstance().addTask(task_0);
+        TaskService.getInstance().addTask(task_1);
+        var mainPanel = new TaskPanel(50, 850);
+        this.taskPanel = mainPanel;
+        TaskService.getInstance().addObserver(mainPanel);
+        TaskService.getInstance().addObserver(NPC_1);
+        TaskService.getInstance().addObserver(NPC_2);
+        TaskService.getInstance().notify(TaskService.getInstance().getTaskByCustomRule());
+        this.dp1.updateViewByTask(TaskService.getInstance().getTaskByCustomRule());
+        this.dp2.updateViewByTask(TaskService.getInstance().getTaskByCustomRule());
+        // var monster_1: MockKillMonsterButton = new MockKillMonsterButton("engine_icon_png", "001");
+        // this.addChild(monster_1);
+        // monster_1.body.x = 350;
+        // monster_1.body.y = 600;
+        this.item = new Item("五角星型残骸", "star_png", 5, TileMap.TILE_SIZE * 10, TileMap.TILE_SIZE * 1);
+        var player = new Player(this.ad);
+        GameScene.getCurrentScene().player = player;
+        var map = new TileMap(GameScene.getCurrentScene().player);
+        this.map = map;
+        GameScene.getCurrentScene().stage.addChild(map);
+        GameScene.getCurrentScene().stage.addChild(GameScene.getCurrentScene().player);
+        GameScene.getCurrentScene().player.idle();
+        var monster_1 = new Monster("buguize_2_png", "003");
+        SceneService.getInstance().addObserver(monster_1);
+        SceneService.getInstance().addObserver(task_1.condition);
+        monster_1.x = TileMap.TILE_SIZE * randomnum(4, 2);
+        monster_1.y = TileMap.TILE_SIZE * 10;
+        GameScene.getCurrentScene().stage.addChild(monster_1);
+        this.map.replaceMap(monster_1);
+        var monster_2 = new Monster("buguize_2_png", "003");
+        SceneService.getInstance().addObserver(monster_2);
+        monster_2.x = TileMap.TILE_SIZE * 6;
+        monster_2.y = TileMap.TILE_SIZE * 9;
+        GameScene.getCurrentScene().stage.addChild(monster_2);
+        this.map.replaceMap(monster_2);
+        var monster_3 = new Monster("buguize_2_png", "003");
+        SceneService.getInstance().addObserver(monster_3);
+        monster_3.x = TileMap.TILE_SIZE * 5;
+        monster_3.y = TileMap.TILE_SIZE * 13;
+        GameScene.getCurrentScene().stage.addChild(monster_3);
+        this.map.replaceMap(monster_3);
+        GameScene.getCurrentScene().stage.addChild(NPC_1);
+        GameScene.getCurrentScene().stage.addChild(NPC_2);
+        GameScene.getCurrentScene().stage.addChild(this.dp1);
+        GameScene.getCurrentScene().stage.addChild(this.dp2);
+        GameScene.getCurrentScene().stage.addChild(this.item);
+        GameScene.getCurrentScene().stage.addChild(mainPanel);
+        setTimeout(function () {
+            if (task_1.status == TaskStatus.SUBMITED) {
+                GameScene.getCurrentScene().stage.removeAll();
+                UIScene.getCurrentScene().gamebadend();
+            }
+        }, this, 2000);
+    };
+    UIScene.prototype.gameContinue = function () {
+        var stageW = 640;
+        var stageH = 1136;
+        var BlackMask = new engine.Shape();
+        BlackMask.graphics.beginFill("#000000", 1);
+        BlackMask.graphics.drawRect(0, 0, stageW, stageH);
+        BlackMask.graphics.endFill();
+        BlackMask.graphics.width = stageW;
+        BlackMask.graphics.height = stageH;
+        GameScene.getCurrentScene().stage.addChild(BlackMask);
+        var equipmentButtun = new engine.TextField();
+        equipmentButtun.text = "状态";
+        equipmentButtun.size = '40';
+        equipmentButtun.x = 280;
+        equipmentButtun.y = 1000;
+        GameScene.getCurrentScene().stage.addChild(equipmentButtun);
+        equipmentButtun.touchEnabled = true;
+        equipmentButtun.addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
+            if (PropertyPanel.flag == 0) {
+                console.log(PropertyPanel.flag);
+                var pp = new PropertyPanel(UIScene.getCurrentScene().hero);
+                GameScene.getCurrentScene().stage.addChild(pp);
+            }
+        });
+        GameScene.getCurrentScene().stage.addChild(this.map);
+        GameScene.getCurrentScene().stage.addChild(GameScene.getCurrentScene().player);
+        GameScene.getCurrentScene().player.idle();
+        GameScene.getCurrentScene().stage.addChild(this.taskPanel);
+        GameScene.getCurrentScene().stage.addChild(this.NPC_1);
+        GameScene.getCurrentScene().stage.addChild(this.NPC_2);
+        GameScene.getCurrentScene().stage.addChild(this.dp1);
+        GameScene.getCurrentScene().stage.addChild(this.dp2);
+        //GameScene.getCurrentScene().main.addChild(this.item);
+    };
+    UIScene.prototype.gamebadend = function () {
+        var no = new engine.Bitmap();
+        no.src = "End_jpg";
+        no.width = 640;
+        no.height = 1134;
+        GameScene.getCurrentScene().stage.addChild(no);
+        var back = new engine.TextField();
+        back.text = "返回主菜单";
+        back.size = '30';
+        back.touchEnabled = true;
+        back.y = 900;
+        back.x = 250;
+        GameScene.getCurrentScene().stage.addChild(back);
+        back.addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
+            GameScene.getCurrentScene().stage.removeAll();
+            UIScene.getCurrentScene().gameMenu();
+        });
+    };
+    UIScene.prototype.gamehappyend = function () {
+        var blackback = new engine.Shape();
+        blackback.graphics.beginFill("#000000", 1);
+        blackback.graphics.drawRect(0, 0, 640, 1134);
+        blackback.graphics.endFill();
+        blackback.graphics.width = 640;
+        blackback.graphics.height = 1134;
+        GameScene.getCurrentScene().stage.addChild(blackback);
+        var win = new engine.TextField();
+        // win.textColor = #ffffff;
+        // win.width = 640 - 172;
+        // win.textAlign = "center";
+        win.text = "纯形战士战胜了不规则几何体，但战斗仍将继续！";
+        win.size = '50';
+        win.font = '黑体';
+        win.x = 100;
+        win.y = 300;
+        GameScene.getCurrentScene().stage.addChild(win);
+        var back = new engine.TextField();
+        back.text = "返回主菜单";
+        back.size = '30';
+        back.touchEnabled = true;
+        back.y = 900;
+        back.x = 250;
+        GameScene.getCurrentScene().stage.addChild(back);
+        back.addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
+            GameScene.getCurrentScene().stage.removeAll();
+            UIScene.getCurrentScene().gameMenu();
+        });
+        var bcontinue = new engine.TextField();
+        bcontinue.text = "继续游戏";
+        bcontinue.size = '30';
+        bcontinue.touchEnabled = true;
+        bcontinue.y = 800;
+        bcontinue.x = 250;
+        GameScene.getCurrentScene().stage.addChild(bcontinue);
+        bcontinue.addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
+            GameScene.getCurrentScene().stage.removeAll();
+            UIScene.getCurrentScene().gameContinue();
+        });
+    };
+    return UIScene;
+}());
+var Skill = (function (_super) {
+    __extends(Skill, _super);
+    function Skill(data) {
+        var _this = _super.call(this) || this;
+        _this.data = data;
+        for (var i = 0; i < skillconfig.length; i++) {
+            var data = skillconfig[i];
+        }
+        return _this;
+        // this.name = name;
+        // this.inf = inf;
+        // this.ratio = ratio
+        // this.MPneed = MPneed;
+        // this.distance = distance;
+        // this.type = type;
+        // this.num = num;
+    }
+    return Skill;
+}(engine.DisplayObjectContainer));
+var SkillConstructor = (function (_super) {
+    __extends(SkillConstructor, _super);
+    function SkillConstructor(data) {
+        var _this = _super.call(this) || this;
+        _this.data = data;
+        var bitmap = new engine.Bitmap();
+        bitmap.src = data.image;
+        bitmap.width = 128;
+        bitmap.height = 128;
+        _this.addChild(bitmap);
+        _this.x = data.x;
+        _this.y = data.y;
+        var tfname = new engine.TextField();
+        tfname.text = data.name;
+        _this.addChild(tfname);
+        bitmap.touchEnabled = true;
+        bitmap.addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
+        });
+        bitmap.addEventListener(engine.TouchEvent.TOUCH_BEGIN, function (e) {
+        });
+        return _this;
+    }
+    SkillConstructor.prototype.showSkillsInformation = function () {
+    };
+    return SkillConstructor;
+}(engine.DisplayObjectContainer));
+var SkillType;
+(function (SkillType) {
+    SkillType[SkillType["hurt"] = 0] = "hurt";
+    SkillType[SkillType["speedbuff"] = 1] = "speedbuff";
+    SkillType[SkillType["atkbuff"] = 2] = "atkbuff";
+    SkillType[SkillType["HPbuff"] = 3] = "HPbuff";
+    SkillType[SkillType["move"] = 4] = "move";
+    SkillType[SkillType["roll"] = 5] = "roll";
+    SkillType[SkillType["jump"] = 6] = "jump"; //跳跃
+})(SkillType || (SkillType = {}));
+var skillconfig = [
+    { x: 30, y: 900, name: "射击", image: "Skill_1_png", inf: "普通远程攻击", ratio: 100, MPneed: 5, distance: 2, type: 0, num: 1 },
+    { x: 160, y: 900, name: "轰击", image: "Skill_2_png", inf: "聚集锋芒的重型远程攻击", ratio: 350, MPneed: 70, distance: 3, type: 0, num: 1 },
+    { x: 290, y: 900, name: "划击", image: "Skill_3_png", inf: "不擅长的近战攻击", ratio: 80, MPneed: 0, distance: 1, type: 0, num: 1 },
+    { x: 420, y: 900, name: "尖锐化", image: "Skill_4_png", inf: "三角高速旋转，本回合增加行动次数", ratio: 100, MPneed: 50, distance: 0, type: 1, num: 1 },
+    { x: 550, y: 900, name: "三角移动", image: "Skill_5_png", inf: "移动一格并回复10MP", ratio: 0, MPneed: -10, distance: 1, type: 4, num: 1 },
+    { x: 30, y: 900, name: "棱刮", image: "", inf: "普通近战攻击", ratio: 100, MPneed: 0, distance: 1, type: 0, num: 2 },
+    { x: 160, y: 900, name: "格式打击", image: "", inf: "猛扑对敌人造成重创", ratio: 250, MPneed: 50, distance: 1, type: 0, num: 2 },
+    { x: 290, y: 900, name: "空格", image: "", inf: "向所指方向跳跃一格并撞击敌人", ratio: 125, MPneed: 30, distance: 2, type: 6, num: 2 },
+    { x: 420, y: 900, name: "栅格化", image: "", inf: "方块变得更方了，本次战斗中永久提升攻击力", ratio: 150, MPneed: 5, distance: 2, type: 2, num: 2 },
+    { x: 550, y: 900, name: "方块移动", image: "", inf: "上下左右一格的范围", ratio: 0, MPneed: 0, distance: 1, type: 4, num: 2 },
+    { x: 30, y: 900, name: "碾压", image: "", inf: "普通攻击，命中后回复8MP", ratio: 125, MPneed: -8, distance: 1, type: 0, num: 3 },
+    { x: 160, y: 900, name: "飞盘", image: "", inf: "正圆自身的投影攻击远程攻击，命中后回复5MP", ratio: 100, MPneed: -5, distance: 2, type: 0, num: 3 },
+    { x: 290, y: 900, name: "翻滚", image: "", inf: "直线大幅度移动，回复2MP", ratio: 0, MPneed: -2, distance: 5, type: 5, num: 3 },
+    { x: 420, y: 900, name: "圆滑化", image: "", inf: "正圆变得更加圆润光滑，按当前比例增长HP", ratio: 150, MPneed: 100, distance: 2, type: 3, num: 3 },
+    { x: 550, y: 900, name: "正圆移动", image: "", inf: "上下左右一格的范围", ratio: 0, MPneed: 0, distance: 1, type: 4, num: 3 },
+    { x: 30, y: 900, name: "不规则攻击", image: "", inf: "杂鱼也能打败纯形英雄", ratio: 100, MPneed: 0, distance: 3, type: 0, num: 4 },
+    { x: 160, y: 900, name: "不规则移动", image: "", inf: "上下左右一格的范围", ratio: 0, MPneed: 0, distance: 1, type: 4, num: 4 },
+];
+var Item = (function (_super) {
+    __extends(Item, _super);
+    function Item(name, ad, atk, x, y) {
+        var _this = _super.call(this) || this;
+        _this._body = new engine.Bitmap();
+        _this._body.src = ad;
+        _this._body.width = TileMap.TILE_SIZE;
+        _this._body.height = TileMap.TILE_SIZE;
+        _this.name = name;
+        _this.ad = ad;
+        _this.atk = atk;
+        _this.x = x;
+        _this.y = y;
+        _this.addChild(_this._body);
+        _this.touchEnabled = true;
+        _this.addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
+            _this.onItemClick();
+        });
+        return _this;
+    }
+    Item.prototype.onChange = function () {
+    };
+    Item.prototype.onItemClick = function () {
+        if (SceneService.getInstance().list, length != 0) {
+            SceneService.getInstance().list.cancel();
+        }
+        SceneService.getInstance().list.addCommand(new WalkCommand(Math.floor(this.x / TileMap.TILE_SIZE), Math.floor(this.y / TileMap.TILE_SIZE)));
+        SceneService.getInstance().list.addCommand(new EquipCommand(this.name, this.ad, this.atk));
+        SceneService.getInstance().list.execute();
+    };
+    return Item;
+}(engine.DisplayObjectContainer));
+var NPC = (function (_super) {
+    __extends(NPC, _super);
+    //public NPCTalk:string;
+    // public task:Task;
+    function NPC(id, ad, x, y, dia) {
+        var _this = _super.call(this) || this;
+        _this.fighted = false;
+        _this.dialoguePanel = dia;
+        _this._body = new engine.Bitmap();
+        _this._emoji = new engine.Bitmap();
+        _this._body.src = ad;
+        _this._emoji.src = "notice_png";
+        _this._id = id;
+        _this.x = x;
+        _this.y = y;
+        _this._body.width = _this._body.width / 2;
+        _this._body.height = _this._body.height / 2;
+        _this._emoji.width = 70;
+        _this._emoji.height = 70;
+        _this._emoji.y = -60;
+        _this._emoji.x = -5;
+        _this._emoji.alpha = 0;
+        _this.addChild(_this._body);
+        _this.addChild(_this._emoji);
+        _this.touchEnabled = true;
+        _this.addEventListener(engine.TouchEvent.TOUCH_BEGIN, _this.onNPCClick);
+        return _this;
+    }
+    NPC.prototype.onChange = function (task) {
+        if (task.status == TaskStatus.ACCEPTABLE && this._id == task.fromNpcId) {
+            this._emoji.src = "notice_png";
+            this._emoji.alpha = 1;
+        }
+        if (task.status == TaskStatus.DURING && this._id == task.fromNpcId) {
+            this._emoji.alpha = 0;
+        }
+        if (task.status == TaskStatus.DURING && this._id == task.toNpcId) {
+            this._emoji.src = "question_png";
+            this._emoji.alpha = 1;
+        }
+        if (task.status == TaskStatus.CAN_SUBMIT && this._id == task.fromNpcId) {
+            this._emoji.src = "question_png";
+            this._emoji.alpha = 0;
+        }
+        if (task.status == TaskStatus.CAN_SUBMIT && this._id == task.toNpcId) {
+            this._emoji.src = "question_png";
+            this._emoji.alpha = 1;
+        }
+        if (task.status == TaskStatus.SUBMITED && this._id == task.toNpcId) {
+            this._emoji.alpha = 0;
+        }
+    };
+    NPC.prototype.onNPCClick = function (e) {
+        TaskService.getInstance().accept();
+        if (SceneService.getInstance().list, length != 0) {
+            SceneService.getInstance().list.cancel();
+        }
+        SceneService.getInstance().list.addCommand(new WalkCommand(Math.floor(this.x / TileMap.TILE_SIZE), Math.floor(this.y / TileMap.TILE_SIZE)));
+        SceneService.getInstance().list.addCommand(new TalkCommand(this._id));
+        SceneService.getInstance().list.execute();
+    };
+    return NPC;
+}(engine.DisplayObjectContainer));
+var TaskPanel = (function (_super) {
+    __extends(TaskPanel, _super);
+    //task:Task
+    function TaskPanel(x, y) {
+        var _this = _super.call(this) || this;
+        _this.x = x;
+        _this.y = y;
+        _this.body = new engine.Shape();
+        _this.body.graphics.beginFill("#000000", 0.4);
+        _this.body.graphics.drawRect(0, 0, 600, 100);
+        _this.body.graphics.endFill();
+        _this.textField = new engine.TextField();
+        _this.textField.text = "   任务进程    ";
+        _this.textField.x = 0;
+        _this.textField.x = 0;
+        _this.textField2 = new engine.TextField();
+        _this.textField2.text = "  任务状态    ";
+        _this.textField2.x = 0;
+        _this.textField2.y = 30;
+        _this.textField3 = new engine.TextField();
+        _this.textField2.text = "      ";
+        _this.textField3.x = 0;
+        _this.textField3.y = 55;
+        _this.addChild(_this.body);
+        _this.addChild(_this.textField);
+        _this.addChild(_this.textField2);
+        _this.addChild(_this.textField3);
+        return _this;
+    }
+    TaskPanel.prototype.onChange = function (task) {
+        console.log(task);
+        this.textField.text = task.desc;
+        var tf;
+        switch (task.status) {
+            case 0:
+                tf = "未可接受";
+                break;
+            case 1:
+                tf = "可接受";
+                break;
+            case 2:
+                tf = "进行中";
+                break;
+            case 3:
+                tf = "可完成";
+                break;
+            case 4:
+                tf = "已完成";
+                break;
+        }
+        this.textField2.text = task.name + " :" + tf;
+        if (task.type == TaskType.Kill) {
+            this.textField3.text = task.name + " :" + task.getcurrent() + "/" + task.total;
+        }
+    };
+    return TaskPanel;
+}(engine.DisplayObjectContainer));
+var DialoguePanel = (function (_super) {
+    __extends(DialoguePanel, _super);
+    function DialoguePanel(talk) {
+        var _this = _super.call(this) || this;
+        _this.body = new engine.Shape();
+        _this.body.graphics.beginFill("#000000", 0.7);
+        _this.body.graphics.drawRect(0, 0, 600, 172);
+        _this.body.graphics.endFill();
+        _this.body.y = 450;
+        _this.textField = new engine.TextField();
+        _this.textField.text = talk;
+        _this.button = new Button("close_png");
+        _this.textField.x = 80;
+        _this.textField.y = 500;
+        _this.button.body.width = 40;
+        _this.button.body.height = 40;
+        _this.button.x = 500;
+        _this.button.y = 550;
+        _this.button.touchEnabled = true;
+        _this.body.touchEnabled = true;
+        _this.button.addEventListener(engine.TouchEvent.TOUCH_TAP, _this.onButtonClick);
+        return _this;
+    }
+    DialoguePanel.prototype.showDpanel = function () {
+        this.addChild(this.body);
+        this.addChild(this.button);
+        this.addChild(this.textField);
+    };
+    DialoguePanel.prototype.updateViewByTask = function (task) {
+        this.currentTask = task;
+        if (this.currentTask.id == "001" && this.linkNPC._id == "NPC_2") {
+            this.textField.text = "变得不规则挺好的，哈哈哈，来跳舞吧！";
+        }
+        if (this.currentTask.status == TaskStatus.CAN_SUBMIT && this.currentTask.status == 4) {
+            this.textField.text = this.currentTask.NPCTaskTalk;
+        }
+    };
+    DialoguePanel.prototype.disshowDpanel = function () {
+        this.removeChild(this.body);
+        this.removeChild(this.button);
+        this.removeChild(this.textField);
+    };
+    DialoguePanel.prototype.onButtonClick = function (e) {
+        this.disshowDpanel();
+        switch (this.currentTask.status) {
+            case TaskStatus.ACCEPTABLE:
+                TaskService.getInstance().accept(this.currentTask.id);
+                // if (this.currentTask.id == "000") {
+                //     TaskService.getInstance().finish(this.currentTask.id);
+                //     if (TaskService.getInstance().getNextTask() != null) {
+                //         TaskService.getInstance().getNextTask().status = TaskStatus.ACCEPTABLE;
+                //         TaskService.getInstance().notify(TaskService.getInstance().getNextTask());
+                //     }
+                //     if (TaskService.getInstance().getTaskByCustomRule() != null) {
+                //         this.updateViewByTask(TaskService.getInstance().getTaskByCustomRule());
+                //         TaskService.getInstance().notify(TaskService.getInstance().getTaskByCustomRule());
+                //     }
+                // }
+                break;
+            case TaskStatus.CAN_SUBMIT:
+                TaskService.getInstance().finish(this.currentTask.id);
+                if (TaskService.getInstance().getNextTask() != null) {
+                    TaskService.getInstance().getNextTask().status = TaskStatus.ACCEPTABLE;
+                }
+                if (TaskService.getInstance().getTaskByCustomRule() != null) {
+                    console.log(TaskService.getInstance().getTaskByCustomRule());
+                    this.updateViewByTask(TaskService.getInstance().getTaskByCustomRule());
+                    TaskService.getInstance().notify(TaskService.getInstance().getTaskByCustomRule());
+                }
+                break;
+            default:
+                break;
+        }
+        if (this.linkNPC._id == "NPC_2" && this.linkNPC.fighted == false) {
+            if (SceneService.getInstance().list, length != 0) {
+                SceneService.getInstance().list.cancel();
+            }
+            SceneService.getInstance().list.addCommand(new FightCommand("npc_2_png"));
+            SceneService.getInstance().list.execute();
+        }
+        else {
+            this.textField.text = "我投降";
+        }
+    };
+    return DialoguePanel;
+}(engine.DisplayObjectContainer));
+var Monster = (function (_super) {
+    __extends(Monster, _super);
+    function Monster(ad, linkTask) {
+        var _this = _super.call(this) || this;
+        _this.count = 0;
+        _this.ad = ad;
+        _this.body = new engine.Bitmap();
+        _this.body.src = ad;
+        _this.body.width = TileMap.TILE_SIZE;
+        _this.body.height = TileMap.TILE_SIZE;
+        _this.linkTask = linkTask;
+        _this.touchEnabled = true;
+        _this.addEventListener(engine.TouchEvent.TOUCH_BEGIN, _this.onButtonClick);
+        _this.addChild(_this.body);
+        engine.Ticker.getInstance().register(function () {
+            if (_this.count < 5) {
+                _this.body.scaleY *= 1.01;
+            }
+            else if (_this.count < 10 || _this.count >= 5) {
+                _this.body.scaleY /= 1.01;
+            }
+            _this.count += 0.5;
+            if (_this.count >= 10) {
+                _this.count = 0;
+            }
+        });
+        return _this;
+    }
+    Monster.prototype.onButtonClick = function (e) {
+        if (SceneService.getInstance().list, length != 0) {
+            SceneService.getInstance().list.cancel();
+        }
+        SceneService.getInstance().list.addCommand(new WalkCommand(Math.floor(this.x / TileMap.TILE_SIZE), Math.floor(this.y / TileMap.TILE_SIZE)));
+        SceneService.getInstance().list.addCommand(new FightCommand(this.ad));
+        SceneService.getInstance().list.execute();
+    };
+    Monster.prototype.onChange = function () {
+        if (this.linkTask != null) {
+            var task = TaskService.getInstance().taskList[this.linkTask];
+            if (!task) {
+                console.error('missing task:', this.linkTask);
+            }
+            if (task.status == TaskStatus.DURING) {
+                SceneService.getInstance().notify(TaskService.getInstance().taskList[this.linkTask]);
+            }
+        }
+    };
+    return Monster;
+}(engine.DisplayObjectContainer));
+var Task = (function () {
+    function Task(id, name, condition, type) {
+        this._current = 0;
+        this._id = id;
+        this._name = name;
+        this._condition = condition;
+        this.type = type;
+    }
+    Task.prototype.checkStatus = function () {
+        if (this._status == TaskStatus.DURING &&
+            this._current >= this.total) {
+            this._status = TaskStatus.CAN_SUBMIT;
+        }
+        TaskService.getInstance().notify(this);
+    };
+    Object.defineProperty(Task.prototype, "condition", {
+        get: function () {
+            return this._condition;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Task.prototype, "status", {
+        get: function () {
+            return this._status;
+        },
+        set: function (value) {
+            this._status = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Task.prototype, "id", {
+        get: function () {
+            return this._id;
+        },
+        set: function (id) {
+            this._id = id;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Task.prototype, "name", {
+        get: function () {
+            return this._name;
+        },
+        set: function (name) {
+            this._name = name;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Task.prototype.getcurrent = function () {
+        return this._current;
+    };
+    Task.prototype.setcurrent = function (current) {
+        this._current = current;
+        this.checkStatus();
+    };
+    Task.prototype.onAccept = function () {
+        this._condition.onAccept(this);
+    };
+    return Task;
+}());
+var TaskStatus;
+(function (TaskStatus) {
+    TaskStatus[TaskStatus["UNACCEPTABLE"] = 0] = "UNACCEPTABLE";
+    TaskStatus[TaskStatus["ACCEPTABLE"] = 1] = "ACCEPTABLE";
+    TaskStatus[TaskStatus["DURING"] = 2] = "DURING";
+    TaskStatus[TaskStatus["CAN_SUBMIT"] = 3] = "CAN_SUBMIT";
+    TaskStatus[TaskStatus["SUBMITED"] = 4] = "SUBMITED";
+})(TaskStatus || (TaskStatus = {}));
+var TaskType;
+(function (TaskType) {
+    TaskType[TaskType["Talk"] = 0] = "Talk";
+    TaskType[TaskType["Kill"] = 1] = "Kill";
+})(TaskType || (TaskType = {}));
+var KillMonsterTaskCondition = (function () {
+    function KillMonsterTaskCondition() {
+    }
+    KillMonsterTaskCondition.prototype.onAccept = function (task) {
+        task.setcurrent(task.getcurrent());
+    };
+    KillMonsterTaskCondition.prototype.onSubmit = function (task) {
+    };
+    KillMonsterTaskCondition.prototype.onChange = function (task) {
+        var temp = task.getcurrent();
+        temp++;
+        task.setcurrent(temp);
+    };
+    return KillMonsterTaskCondition;
+}());
+var NPCTalkTaskCondition = (function () {
+    function NPCTalkTaskCondition() {
+    }
+    NPCTalkTaskCondition.prototype.onAccept = function (task) {
+        //task.current++;
+        // var temp = 0;
+        // temp = task.getcurrent();
+        task.setcurrent(1);
+    };
+    NPCTalkTaskCondition.prototype.onSubmit = function (task) {
+    };
+    NPCTalkTaskCondition.prototype.onChange = function (task) {
+    };
+    return NPCTalkTaskCondition;
+}());
+var TaskService = (function () {
+    function TaskService() {
+        this.taskList = {};
+        this.observerList = [];
+        TaskService.count++;
+        if (TaskService.count > 1) {
+            throw "singleton!!!";
+        }
+    }
+    TaskService.getInstance = function () {
+        if (TaskService.instance == null) {
+            TaskService.instance = new TaskService();
+        }
+        return TaskService.instance;
+    };
+    TaskService.prototype.getTaskByCustomRule = function () {
+        for (var id in this.taskList) {
+            var task = this.taskList[id];
+            if (task.status == TaskStatus.CAN_SUBMIT)
+                return task;
+        }
+        for (var id in this.taskList) {
+            var task = this.taskList[id];
+            if (task.status == TaskStatus.ACCEPTABLE)
+                return task;
+        }
+    };
+    TaskService.prototype.getNextTask = function () {
+        for (var id in this.taskList) {
+            var task = this.taskList[id];
+            if (task.status == TaskStatus.UNACCEPTABLE)
+                return task;
+        }
+    };
+    TaskService.prototype.accept = function (id) {
+        if (!id) {
+            return ErrorCode.MISSING_TASK;
+        }
+        var task = this.taskList[id];
+        if (task.id == id) {
+            task.status = TaskStatus.DURING;
+            task.onAccept();
+            console.log("任务状态" + task.status);
+            this.notify(this.taskList[id]);
+            return ErrorCode.SUCCESS;
+        }
+        else {
+            return ErrorCode.MISSING_TASK;
+        }
+    };
+    TaskService.prototype.finish = function (id) {
+        if (!id) {
+            return ErrorCode.MISSING_TASK;
+        }
+        var task = this.taskList[id];
+        if (task.id == id) {
+            console.log("finish");
+            task.status = TaskStatus.SUBMITED;
+            this.notify(this.taskList[id]);
+            return ErrorCode.SUCCESS;
+        }
+        else {
+            return ErrorCode.MISSING_TASK;
+        }
+    };
+    TaskService.prototype.notify = function (task) {
+        // console.log("111");
+        for (var _i = 0, _a = this.observerList; _i < _a.length; _i++) {
+            var observer = _a[_i];
+            observer.onChange(task);
+        }
+    };
+    TaskService.prototype.addTask = function (task) {
+        this.taskList[task.id] = task;
+    };
+    TaskService.prototype.addObserver = function (observer) {
+        for (var i = 0; i < this.observerList.length; i++) {
+            if (observer == this.observerList[i])
+                return ErrorCode.REPEAT_OBSERVER;
+        }
+        this.observerList.push(observer);
+    };
+    return TaskService;
+}());
+TaskService.count = 0;
+var ErrorCode;
+(function (ErrorCode) {
+    ErrorCode[ErrorCode["SUCCESS"] = 0] = "SUCCESS";
+    ErrorCode[ErrorCode["MISSING_TASK"] = 1] = "MISSING_TASK";
+    ErrorCode[ErrorCode["REPEAT_OBSERVER"] = 2] = "REPEAT_OBSERVER";
+})(ErrorCode || (ErrorCode = {}));
 var BlockType;
 (function (BlockType) {
     BlockType[BlockType["notmove"] = 0] = "notmove";
@@ -3110,7 +3042,7 @@ var Battle = (function (_super) {
         _this.timerbar = new engine.TextField();
         _this.chance = 0; //该回合行动次数
         var BattleMask = new engine.Shape();
-        BattleMask.graphics.beginFill(0x000000, 1);
+        BattleMask.graphics.beginFill("#000000", 1);
         BattleMask.graphics.drawRect(0, 0, 640, 1136);
         BattleMask.graphics.endFill();
         BattleMask.graphics.width = 640;
@@ -3159,7 +3091,8 @@ var Battle = (function (_super) {
                 _this._block[i][j].addEventListener(engine.TouchEvent.TOUCH_TAP, function (e) {
                     // console.log(e.target);
                     // console.log(e.target.i, e.target.j);
-                    //this.heroTouchMove(e.target.i, e.target.j);
+                    var target = e.target;
+                    _this.heroTouchMove(target['i'], target['j']);
                 });
             }
         }
@@ -3858,3 +3791,69 @@ function setEnemy(level, ad) {
 //             this.updateALLState();
 //         }
 //     } 
+// var canvas = document.getElementById("app") as HTMLCanvasElement;
+// var stage =  engine.run(canvas);
+// var container = new engine.DisplayObjectContainer();
+// stage.addEventListener("mousedown", () => {
+//     console.log("stage");
+// });
+// container.addEventListener("mousedown", () => {
+//     console.log("container");
+// }, true);
+// let tf = new engine.TextField();
+// tf.text = "可以拖动的";
+// //tf.x = 20;
+// //tf.y = 40;
+// tf.touchEnabled = true;
+// tf.addEventListener("mousedown", (e: MouseEvent) => {
+//     console.log("123");
+// });
+// let Button_1 = new engine.Bitmap();
+// Button_1.src = "image.JPG";
+// //Button.x = 50;
+// //Button.y = 50;
+// Button_1.scaleX = 0.3;
+// Button_1.scaleY = 0.3;
+// Button_1.touchEnabled = true;
+// // Button.addEventListener("mousedown", () => { alert("mousedown") });
+// // Button.addEventListener("mouseup", () => { alert("mouseup") });
+// var distanceX;
+// var distanceY;
+// Button_1.addEventListener("mousedown", (e: MouseEvent) => {
+//     if (TouchEventService.getInstance().isMove == false) {
+//         TouchEventService.getInstance().isMove = true;
+//     }
+//     TouchEventService.getInstance().currentX = e.x;
+//     TouchEventService.getInstance().currentY = e.y;
+//     distanceX = TouchEventService.getInstance().currentX - Button_1.x;
+//     distanceY = TouchEventService.getInstance().currentY - Button_1.y;
+// });
+// Button_1.addEventListener("mousemove", (e: MouseEvent) => {
+//     if (TouchEventService.getInstance().isMove == true) {
+//         Button_1.x = TouchEventService.getInstance().currentX - distanceX;
+//         Button_1.y = TouchEventService.getInstance().currentY - distanceY;
+//     }
+//     TouchEventService.getInstance().currentX = e.x;
+//     TouchEventService.getInstance().currentY = e.y;
+// });
+// Button_1.addEventListener("mouseup", (e: MouseEvent) => {
+//     if (TouchEventService.getInstance().isMove == true) {
+//         TouchEventService.getInstance().isMove = false;
+//     }
+// });
+// // stage.addChild(Button);
+// // stage.addChild(tf);
+// stage.addChild(container);
+// //container.addChild(tf);
+// container.addChild(Button_1);
+// container.addChild(tf);
+var canvas = document.getElementById("app");
+var stage = engine.run(canvas);
+var scene = new GameScene();
+GameScene.replaceScene(scene);
+GameScene.getCurrentScene().stage = stage;
+var pickscene = new UIScene();
+UIScene.replaceScene(pickscene);
+UIScene.getCurrentScene().gameMenu();
+//this.hero = SetTriangle(0);
+//UIScene.getCurrentScene().gamestart();

@@ -1,152 +1,234 @@
-
-//list 
-// |-itemRenderer
-//      |-- TextField
-//      |-- Button
 namespace engine {
 
- export let run = (canvas: HTMLCanvasElement) => {
+    export let run = (canvas: HTMLCanvasElement) => {
 
         var stage = new DisplayObjectContainer();
         let context2D = canvas.getContext("2d");
+        //let context2D = Factory.create();
         let lastNow = Date.now();
+        let renderer = new CanvasRenderer(stage,context2D);
         let frameHandler = () => {
             let now = Date.now();
             let deltaTime = now - lastNow;
             Ticker.getInstance().notify(deltaTime);
+            // context2D.setTransform(1,0,0,1,0,0)
             context2D.clearRect(0, 0, canvas.width, canvas.height);
             context2D.save();
-            stage.draw(context2D);
+            renderer.render();
+            stage.update();
             context2D.restore();
             lastNow = now;
             window.requestAnimationFrame(frameHandler);
         }
 
         window.requestAnimationFrame(frameHandler);
-       
-    window.onmousedown = (e) => {
 
-        let x = e.offsetX - 3;
-        let y = e.offsetY - 3;
-      
-        let result = stage.hitTest(x, y);
-        let target = result;
+        window.onmousedown = (e) => {
 
-        let list = [];
-        list.push(result);
-        if (result && result.touchEnabled == true) {
+            let x = e.offsetX - 3;
+            let y = e.offsetY - 3;
 
-            while (result.parent) {
-                list.push(result.parent);
-                result = result.parent;
+            let result = stage.hitTest(x, y);
+            let target = result;
+
+            let list = [];
+            list.push(result);
+            if (result && result.touchEnabled == true) {
+
+                while (result.parent) {
+                    list.push(result.parent);
+                    result = result.parent;
+
+                }
+
+                for (let i = list.length - 1; i > 0; i--) {  //捕获在先
+                    let type = "mousedown";
+                    let currentTarget = result.parent;
+                    let E = { type, target, currentTarget, e }
+                    list[i].dispatchEvent(E);
+
+                }
+
+                for (let i = 0; i < list.length; i++) {  //冒泡在后
+                    let type = "mousedown";
+                    let currentTarget = result.parent;
+                    let E = { type, target, currentTarget, e }
+                    list[i].dispatchEvent(E);
+
+                }
+            }
+        };
+
+        window.onmouseup = (e) => {
+
+            let x = e.offsetX - 3;
+            let y = e.offsetY - 3;
+
+            let result = stage.hitTest(x, y);
+
+            let target = result;
+            let list = [];
+            list.push(result);
+
+            if (result && result.touchEnabled == true) {
+
+                while (result.parent) {
+                    list.push(result.parent);
+                    result = result.parent;
+                }
+
+                for (let i = list.length - 1; i > 0; i--) {  //捕获在先
+                    let type = "mouseup";
+                    let currentTarget = result.parent;
+                    let E = { type, target, currentTarget, e }
+                    list[i].dispatchEvent(E);
+                    //console.log(e);
+                }
+
+                for (let i = 0; i < list.length; i++) {  //冒泡在后
+                    let type = "mouseup";
+                    let currentTarget = result.parent;
+                    let E = { type, target, currentTarget, e }
+                    list[i].dispatchEvent(E);
+                    //console.log(e);
+                }
+
 
             }
 
-            for (let i = list.length - 1; i > 0; i--) {  //捕获在先
-                let type = "mousedown";
-                let currentTarget = result.parent;
-                let E = { type, target, currentTarget,e }
-                list[i].dispatchEvent(E);
-               
+        };
+
+
+        window.onmousemove = (e) => {
+
+
+            let x = e.offsetX - 3;
+            let y = e.offsetY - 3;
+
+            // TouchEventService.getInstance().currentX = x;
+            // TouchEventService.getInstance().currentY = y;
+
+            let result = stage.hitTest(x, y);
+
+            let target = result;
+            let list = [];
+            list.push(result);
+            if (result && result.touchEnabled == true) {
+
+                while (result.parent) {
+                    list.push(result.parent);
+                    result = result.parent;
+
+                }
+
+                for (let i = list.length - 1; i > 0; i--) {  //捕获在先
+                    let type = "mousemove";
+                    let currentTarget = result.parent;
+                    let E = { type, target, currentTarget, e }
+                    list[i].dispatchEvent(E);
+                    //console.log(e);
+                }
+
+                for (let i = 0; i < list.length; i++) {  //冒泡在后
+                    let type = "mousemove";
+                    let currentTarget = result.parent;
+                    let E = { type, target, currentTarget, e }
+                    list[i].dispatchEvent(E);
+                    //console.log(e);
+                }
             }
-
-            for (let i = 0; i < list.length; i++) {  //冒泡在后
-                let type = "mousedown";
-                let currentTarget = result.parent;
-                let E = { type, target, currentTarget,e }
-                list[i].dispatchEvent(E);
-
-            } 
-        }
-    };
-
-    window.onmouseup = (e) => {
-
-        let x = e.offsetX - 3;
-        let y = e.offsetY - 3;
-     
-        let result = stage.hitTest(x, y);
-
-        let target = result;
-        let list = [];
-        list.push(result);
-
-        if (result && result.touchEnabled == true) {
-
-            while (result.parent) {
-                list.push(result.parent);
-                result = result.parent;
-            }
-
-            for (let i = list.length - 1; i > 0; i--) {  //捕获在先
-                let type = "mouseup";
-                let currentTarget = result.parent;
-                let E = { type, target, currentTarget,e }
-                list[i].dispatchEvent(E);
-                //console.log(e);
-            }
-
-            for (let i = 0; i < list.length; i++) {  //冒泡在后
-                let type = "mouseup";
-                let currentTarget = result.parent;
-                let E = { type, target, currentTarget,e }
-                list[i].dispatchEvent(E);
-                //console.log(e);
-            }
-
-
-        }
-
-    };
-
-
-    window.onmousemove = (e) => {
-
-
-        let x = e.offsetX - 3;
-        let y = e.offsetY - 3;
-      
-        // TouchEventService.getInstance().currentX = x;
-        // TouchEventService.getInstance().currentY = y;
-
-        let result = stage.hitTest(x, y);
-
-        let target = result;
-        let list = [];
-        list.push(result);
-        if (result && result.touchEnabled == true) {
-
-            while (result.parent) {
-                list.push(result.parent);
-                result = result.parent;
-
-            }
-
-            for (let i = list.length - 1; i > 0; i--) {  //捕获在先
-                let type = "mousemove";
-                let currentTarget = result.parent;
-                let E = { type, target, currentTarget,e }
-                list[i].dispatchEvent(E);
-                //console.log(e);
-            }
-
-            for (let i = 0; i < list.length; i++) {  //冒泡在后
-                let type = "mousemove";
-                let currentTarget = result.parent;
-                let E = { type, target, currentTarget,e }
-                list[i].dispatchEvent(E);
-                //console.log(e);
-            }
-        }
-    };
+        };
 
 
 
         return stage;
 
     }
+
+    class CanvasRenderer {
+
+        constructor(private stage: DisplayObjectContainer, private context2D: CanvasRenderingContext2D) {
+
+        }
+
+        render() {
+            let stage = this.stage;
+            let context2D = this.context2D;
+            this.renderContainer(stage);
+        }
+
+        renderContainer(container: DisplayObjectContainer) {
+            for (let child of container.children) {
+                let context2D = this.context2D;
+                context2D.globalAlpha = child.globalAlpha;
+                let m = child.globalMatrix;
+                context2D.setTransform(m.a, m.b, m.c, m.d, m.tx, m.ty);
+
+                if (child.type == "Bitmap") {
+                    this.renderBitmap(child as Bitmap);
+                }
+                else if (child.type == "TextField") {
+                    this.renderTextField(child as TextField);
+                }
+                else if (child.type == "Shape") {
+                    this.renderShape(child as Shape);
+                }
+                else if (child.type == "DisplayObjectContainer") {
+                    this.renderContainer(child as DisplayObjectContainer);
+                }
+            }
+        }
+
+        renderBitmap(bitmap: Bitmap) {
+              this.context2D.globalAlpha = bitmap.alpha;
+
+            if (bitmap.isLoaded) {
+
+                this.context2D.drawImage(bitmap.image, 0, 0, bitmap.width, bitmap.height);
+            }
+
+            else {
+
+                bitmap.image.src = bitmap._src;
+
+                bitmap.image.onload = () => {
+
+                    this.context2D.drawImage(bitmap.image, 0, 0, bitmap.width, bitmap.height);
+
+                    bitmap.isLoaded = true;
+
+                }
+            }
+        }
+
+        renderTextField(textField: TextField) {
+             this.context2D.font = textField.size + "px " + textField.font;
+
+            this.context2D.globalAlpha = textField.alpha;
+
+            this.context2D.fillStyle = textField.fillColor;
+
+            this.context2D.fillText(textField.text, 0, parseInt(textField.size));
+
+            textField._measureTextWidth = this.context2D.measureText(textField.text).width;  //180
+
+        }
+
+        renderShape(shape:Shape){
+
+               //context2D.fillStyle = "#FFAAAA";     
+            this.context2D.fillStyle =  'rgba(0, 0, 0, '+shape.graphics.alpha+')'; 
+            // 'rgba(192, 80, 77, 0.7)'; 
+            this.context2D.fillRect(shape.graphics.transX, shape.graphics.transY, shape.graphics.width, shape.graphics.height);
+            //context2D.fill();
+
+        }
+    }
 }
 
+namespace Factory {
+
+}
 
 // window.onload = () => {
 
